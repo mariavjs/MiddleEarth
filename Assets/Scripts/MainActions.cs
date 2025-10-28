@@ -3,13 +3,13 @@ using UnityEngine.SceneManagement;
 
 public class MainMenu : MonoBehaviour
 {
-    public void StartGame()
+    public void PlayGame()
     {
         SceneManager.LoadScene(1); //cena jogo
     }
 
-    public void Menu()
+    public void Shop()
     {
-        SceneManager.LoadScene(0); //cena menu inicial
+        SceneManager.LoadScene(2); //cena menu inicial
     }
 }
