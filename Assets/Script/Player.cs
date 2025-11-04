@@ -2,62 +2,71 @@ using UnityEngine;
 
 public class Player : MonoBehaviour
 {
-    public float speed = 5f;
-    public float acceleration = 1.2f;
+    [Header("Movimento")]
+    public float speed = 5f;          // velocidade horizontal inicial
+    public float acceleration = 1.2f; // aceleração contínua
+
+    [Header("Pulo")]
+    public float jumpHeight = 10f;    // velocidade vertical do pulo
+
     private Rigidbody2D rb;
     private Animator animator;
+    private bool canJump = true;
+    private float currentSpeed;
 
-    public float jumpHeight = 10f; 
-    private bool canJump = true; 
-
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
         rb = GetComponent<Rigidbody2D>();
-        animator = GetComponent<Animator>(); 
+        animator = GetComponent<Animator>();
+
+        currentSpeed = speed; // começa com a speed inicial
     }
 
-    // Update is called once per frame
     void Update()
     {
-        speed += acceleration * Time.deltaTime;
-        // move o player em direção X positiva
-        transform.Translate(Vector2.right * speed * Time.deltaTime);
+        // acelera ao longo do tempo
+        currentSpeed += acceleration * Time.deltaTime;
 
+        // entrada de pulo
         if (Input.GetKeyDown(KeyCode.Space) && canJump)
         {
-            // pula o player
             Jump();
-            animator.SetBool("Jump", true);
-            canJump = false; // impede pulo duplo
+            if (animator) animator.SetBool("Jump", true);
+            canJump = false; // evita pulo duplo
         }
+    }
+
+    void FixedUpdate()
+    {
+        // movimento horizontal via física (correto para Rigidbody2D)
+        rb.linearVelocity = new Vector2(currentSpeed, rb.linearVelocity.y);
     }
 
     void Jump()
     {
-        Vector2 velocity = rb.linearVelocity;
-        velocity.y = jumpHeight; // define a velocidade vertical para o pulo
-        rb.linearVelocity = velocity;
+        // >>> CORREÇÃO: usar rb.velocity (não linearVelocity)
+        Vector2 v = rb.linearVelocity;
+        v.y = jumpHeight;
+        rb.linearVelocity = v;
     }
 
     void OnCollisionEnter2D(Collision2D collision)
     {
-        if (collision.gameObject.CompareTag("Ground")) // if collision.collider.tag == "Ground"
+        // aterrissou no chão sólido
+        if (collision.collider.CompareTag("Ground"))
         {
-            // O player pode pular novamente
             canJump = true;
-            animator.SetBool("Jump", false);
-
-            // Debug.Log("Player landed on the ground.");
+            if (animator) animator.SetBool("Jump", false);
         }
     }
 
     void OnTriggerEnter2D(Collider2D other)
     {
-        //void Player.OnTriggerExit2D(Collider2D other)
-        if (other.tag == "Box") {
-            FindObjectOfType<GroundSpawner>().SpawnTile();
+        // atravessou o gatilho (child "Endpoint" com Tag = "Box")
+        if (other.CompareTag("Box"))
+        {
+            var spawner = FindObjectOfType<GroundSpawner>();
+            if (spawner) spawner.SpawnTile();
         }
-        
     }
 }

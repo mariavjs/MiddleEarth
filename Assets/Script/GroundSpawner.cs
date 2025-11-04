@@ -16,6 +16,15 @@ public class GroundSpawner : MonoBehaviour
     public void SpawnTile()
     {
         GameObject temp = Instantiate(groundPrefab, nextTileSpawnPos, Quaternion.identity);
-        nextTileSpawnPos = temp.GetComponent<Transform>().GetChild(1).transform.position;
+        Transform endpoint = temp.transform.Find("Endpoint");
+        if (endpoint != null)
+        {
+            nextTileSpawnPos = endpoint.position;
+        }
+        else
+        {
+            Debug.LogError("Ground prefab não possui filho 'Endpoint'.");
+        }
+
     }
 }
