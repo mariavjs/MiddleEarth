@@ -1,4 +1,4 @@
-using UnityEngine;
+using UnityEngine; 
 
 public class Player : MonoBehaviour
 {
@@ -6,18 +6,15 @@ public class Player : MonoBehaviour
     public float acceleration = 1.2f;
     private Rigidbody2D rb;
     private Animator animator;
+    public float jumpHeight = 10f;
+    private bool canJump = true;
 
-    public float jumpHeight = 10f; 
-    private bool canJump = true; 
-
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
         rb = GetComponent<Rigidbody2D>();
-        animator = GetComponent<Animator>(); 
+        animator = GetComponent<Animator>();
     }
 
-    // Update is called once per frame
     void Update()
     {
         speed += acceleration * Time.deltaTime;
@@ -36,19 +33,17 @@ public class Player : MonoBehaviour
     void Jump()
     {
         Vector2 velocity = rb.linearVelocity;
-        velocity.y = jumpHeight; // define a velocidade vertical para o pulo
+        velocity.y = jumpHeight;
         rb.linearVelocity = velocity;
     }
 
     void OnCollisionEnter2D(Collision2D collision)
     {
-        if (collision.gameObject.CompareTag("Ground")) // if collision.collider.tag == "Ground"
+        if (collision.gameObject.CompareTag("Ground"))
         {
             // O player pode pular novamente
             canJump = true;
             animator.SetBool("Jump", false);
-
-            // Debug.Log("Player landed on the ground.");
         }
     }
 }
