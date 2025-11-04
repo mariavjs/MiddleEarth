@@ -76,4 +76,13 @@ public class Player : MonoBehaviour
         Destroy(gameObject, 0.5f);
     }
 
+    void OnTriggerEnter2D(Collider2D other)
+    {
+        // atravessou o gatilho (child "Endpoint" com Tag = "Box")
+        if (other.CompareTag("Box"))
+        {
+            var spawner = FindObjectOfType<GroundSpawner>();
+            if (spawner) spawner.SpawnTile();
+        }
+    }
 }
