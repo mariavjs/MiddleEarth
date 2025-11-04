@@ -9,6 +9,9 @@ public class Player : MonoBehaviour
     public float jumpHeight = 10f;
     private bool canJump = true;
 
+    public AudioSource deathSound;
+
+
     void Start()
     {
         rb = GetComponent<Rigidbody2D>();
@@ -46,4 +49,27 @@ public class Player : MonoBehaviour
             animator.SetBool("Jump", false);
         }
     }
+
+    public void Die()
+    {
+        // Toca som de morte se tiver um AudioSource
+        AudioSource deathSound = GetComponent<AudioSource>();
+        if (deathSound != null)
+        {
+            deathSound.Play();
+        }
+
+        // // Aqui você pode tocar animação também
+        // if (animator != null)
+        // {
+        //     animator.SetBool("Dead", true);
+        // }
+
+        // Desativa o movimento
+        this.enabled = false;
+
+        // Destroi o player depois de um pequeno delay (pra som tocar)
+        Destroy(gameObject, 0.5f);
+    }
+
 }

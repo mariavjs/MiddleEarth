@@ -1,21 +1,30 @@
 using UnityEngine;
 
-public class EnemyKillSimple : MonoBehaviour
+public class EnemyKillOnContact : MonoBehaviour
 {
-    [Tooltip("Se true, o player será apenas desativado (SetActive false). Se false, será destruído (Destroy).")]
-    public bool deactivateInsteadOfDestroy = false;
+    public AudioSource killSound;
 
     private void OnTriggerEnter2D(Collider2D other)
     {
         if (other.CompareTag("Player"))
         {
-            // opção: desativar (bom para debug) ou destruir
-            if (deactivateInsteadOfDestroy)
+            // Toca o som do inimigo (se tiver)
+            if (killSound != null)
             {
-                other.gameObject.SetActive(false);
+                killSound.Play();
+            }
+
+            // Tenta pegar o script Player no objeto
+            Player player = other.GetComponent<Player>();
+
+            if (player != null)
+            {
+                // Chama o método de morte do player
+                player.Die();
             }
             else
             {
+                // Se por algum motivo não achar o script, destrói direto
                 Destroy(other.gameObject);
             }
         }
