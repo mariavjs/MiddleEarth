@@ -1,4 +1,4 @@
-using UnityEngine;
+using UnityEngine; 
 
 public class Player : MonoBehaviour
 {
@@ -6,11 +6,12 @@ public class Player : MonoBehaviour
     public float acceleration = 1.2f;
     private Rigidbody2D rb;
     private Animator animator;
+    public float jumpHeight = 10f;
+    private bool canJump = true;
 
-    public float jumpHeight = 10f; 
-    private bool canJump = true; 
+    public AudioSource deathSound;
 
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
+
     void Start()
 {
     rb = GetComponent<Rigidbody2D>();
@@ -18,7 +19,6 @@ public class Player : MonoBehaviour
     if (rb == null) Debug.LogWarning("Player: Rigidbody2D faltando!");
 }
 
-    // Update is called once per frame
     void Update()
     {
         speed += acceleration * Time.deltaTime;
@@ -46,13 +46,34 @@ public class Player : MonoBehaviour
 
     void OnCollisionEnter2D(Collision2D collision)
     {
-        if (collision.gameObject.CompareTag("Ground")) // if collision.collider.tag == "Ground"
+        if (collision.gameObject.CompareTag("Ground"))
         {
             // O player pode pular novamente
             canJump = true;
             animator.SetBool("Jump", false);
-
-            // Debug.Log("Player landed on the ground.");
         }
     }
+
+    public void Die()
+    {
+        // Toca som de morte se tiver um AudioSource
+        AudioSource deathSound = GetComponent<AudioSource>();
+        if (deathSound != null)
+        {
+            deathSound.Play();
+        }
+
+        // // Aqui você pode tocar animação também
+        // if (animator != null)
+        // {
+        //     animator.SetBool("Dead", true);
+        // }
+
+        // Desativa o movimento
+        this.enabled = false;
+
+        // Destroi o player depois de um pequeno delay (pra som tocar)
+        Destroy(gameObject, 0.5f);
+    }
+
 }
