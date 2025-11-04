@@ -59,6 +59,13 @@ public class CameraPlaneSwitcher : MonoBehaviour
             // opcional: se quiser animar orthographicSize ao mudar de banda com zoom:
             // float targetSize = background.GetBandHeight(currentBand) / 2f;
             // StartCoroutine(AnimateCameraSize(cam.orthographicSize, targetSize));
+                    // move o player junto com a câmera
+        if (background.player != null)
+        {
+            Vector3 p = background.player.transform.position;
+            p.y = targetY;
+            background.player.transform.position = p;
+        }
         }
 
         // movimento suave vertical (Lerp)

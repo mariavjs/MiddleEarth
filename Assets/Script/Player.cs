@@ -13,16 +13,17 @@ public class Player : MonoBehaviour
 
 
     void Start()
-    {
-        rb = GetComponent<Rigidbody2D>();
-        animator = GetComponent<Animator>();
-    }
+{
+    rb = GetComponent<Rigidbody2D>();
+    animator = GetComponent<Animator>();
+    if (rb == null) Debug.LogWarning("Player: Rigidbody2D faltando!");
+}
 
     void Update()
     {
         speed += acceleration * Time.deltaTime;
         // move o player em direção X positiva
-        transform.Translate(Vector2.right * speed * Time.deltaTime);
+       // transform.Translate(Vector2.right * speed * Time.deltaTime);
 
         if (Input.GetKeyDown(KeyCode.Space) && canJump)
         {
@@ -32,13 +33,16 @@ public class Player : MonoBehaviour
             canJump = false; // impede pulo duplo
         }
     }
-
     void Jump()
-    {
-        Vector2 velocity = rb.linearVelocity;
-        velocity.y = jumpHeight;
-        rb.linearVelocity = velocity;
-    }
+{
+    if (rb == null) rb = GetComponent<Rigidbody2D>();
+    if (rb == null) return; // evita crash no editor
+
+    Vector2 v = rb.linearVelocity;     // use 'velocity' (Rigidbody2D) 
+    v.y = jumpHeight;
+    rb.linearVelocity = v;
+}
+
 
     void OnCollisionEnter2D(Collision2D collision)
     {
