@@ -51,4 +51,13 @@ public class Player : MonoBehaviour
             // Debug.Log("Player landed on the ground.");
         }
     }
+
+    void OnTriggerEnter2D(Collider2D other)
+    {
+        //void Player.OnTriggerExit2D(Collider2D other)
+        if (other.tag == "Box") {
+            FindObjectOfType<GroundSpawner>().SpawnTile();
+        }
+        
+    }
 }
