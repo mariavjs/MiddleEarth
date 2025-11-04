@@ -1,72 +1,79 @@
-using UnityEngine;
+using UnityEngine; 
 
 public class Player : MonoBehaviour
 {
-    [Header("Movimento")]
-    public float speed = 5f;          // velocidade horizontal inicial
-    public float acceleration = 1.2f; // aceleração contínua
-
-    [Header("Pulo")]
-    public float jumpHeight = 10f;    // velocidade vertical do pulo
-
+    public float speed = 5f;
+    public float acceleration = 1.2f;
     private Rigidbody2D rb;
     private Animator animator;
+    public float jumpHeight = 10f;
     private bool canJump = true;
-    private float currentSpeed;
+
+    public AudioSource deathSound;
+
 
     void Start()
-    {
-        rb = GetComponent<Rigidbody2D>();
-        animator = GetComponent<Animator>();
-
-        currentSpeed = speed; // começa com a speed inicial
-    }
+{
+    rb = GetComponent<Rigidbody2D>();
+    animator = GetComponent<Animator>();
+    if (rb == null) Debug.LogWarning("Player: Rigidbody2D faltando!");
+}
 
     void Update()
     {
-        // acelera ao longo do tempo
-        currentSpeed += acceleration * Time.deltaTime;
+        speed += acceleration * Time.deltaTime;
+        // move o player em direção X positiva
+       // transform.Translate(Vector2.right * speed * Time.deltaTime);
 
-        // entrada de pulo
         if (Input.GetKeyDown(KeyCode.Space) && canJump)
         {
+            // pula o player
             Jump();
-            if (animator) animator.SetBool("Jump", true);
-            canJump = false; // evita pulo duplo
+            animator.SetBool("Jump", true);
+            canJump = false; // impede pulo duplo
         }
     }
-
-    void FixedUpdate()
-    {
-        // movimento horizontal via física (correto para Rigidbody2D)
-        rb.linearVelocity = new Vector2(currentSpeed, rb.linearVelocity.y);
-    }
-
     void Jump()
-    {
-        // >>> CORREÇÃO: usar rb.velocity (não linearVelocity)
-        Vector2 v = rb.linearVelocity;
-        v.y = jumpHeight;
-        rb.linearVelocity = v;
-    }
+{
+    if (rb == null) rb = GetComponent<Rigidbody2D>();
+    if (rb == null) return; // evita crash no editor
+
+    Vector2 v = rb.linearVelocity;     // use 'velocity' (Rigidbody2D) 
+    v.y = jumpHeight;
+    rb.linearVelocity = v;
+}
+
 
     void OnCollisionEnter2D(Collision2D collision)
     {
-        // aterrissou no chão sólido
-        if (collision.collider.CompareTag("Ground"))
+        if (collision.gameObject.CompareTag("Ground"))
         {
+            // O player pode pular novamente
             canJump = true;
-            if (animator) animator.SetBool("Jump", false);
+            animator.SetBool("Jump", false);
         }
     }
 
-    void OnTriggerEnter2D(Collider2D other)
+    public void Die()
     {
-        // atravessou o gatilho (child "Endpoint" com Tag = "Box")
-        if (other.CompareTag("Box"))
+        // Toca som de morte se tiver um AudioSource
+        AudioSource deathSound = GetComponent<AudioSource>();
+        if (deathSound != null)
         {
-            var spawner = FindObjectOfType<GroundSpawner>();
-            if (spawner) spawner.SpawnTile();
+            deathSound.Play();
         }
+
+        // // Aqui você pode tocar animação também
+        // if (animator != null)
+        // {
+        //     animator.SetBool("Dead", true);
+        // }
+
+        // Desativa o movimento
+        this.enabled = false;
+
+        // Destroi o player depois de um pequeno delay (pra som tocar)
+        Destroy(gameObject, 0.5f);
     }
+
 }
