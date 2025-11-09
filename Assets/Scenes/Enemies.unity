@@ -130,6 +130,7 @@ GameObject:
   - component: {fileID: 165335339}
   - component: {fileID: 165335338}
   - component: {fileID: 165335337}
+  - component: {fileID: 165335340}
   m_Layer: 0
   m_Name: Ground
   m_TagString: Ground
@@ -253,6 +254,19 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &165335340
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 165335336}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 95cbe5a9dbd668f4dbfa38567246f2ab, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  speed: 5
 --- !u!1 &278775741
 GameObject:
   m_ObjectHideFlags: 0
@@ -267,6 +281,7 @@ GameObject:
   - component: {fileID: 278775743}
   - component: {fileID: 278775742}
   - component: {fileID: 278775747}
+  - component: {fileID: 278775749}
   - component: {fileID: 278775748}
   m_Layer: 0
   m_Name: Enemy_eye
@@ -434,7 +449,7 @@ Transform:
   m_GameObject: {fileID: 278775741}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 1.6948354, y: -1.827635, z: 0}
+  m_LocalPosition: {x: 1.6948354, y: -2.3, z: 0}
   m_LocalScale: {x: 0.58063185, y: 0.58063185, z: 0.58063185}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -550,6 +565,19 @@ AudioSource:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
+--- !u!114 &278775749
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 278775741}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 95cbe5a9dbd668f4dbfa38567246f2ab, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  speed: 5
 --- !u!1 &367893239
 GameObject:
   m_ObjectHideFlags: 0
@@ -948,6 +976,7 @@ GameObject:
   - component: {fileID: 1807279793}
   - component: {fileID: 1807279792}
   - component: {fileID: 1807279798}
+  - component: {fileID: 1807279799}
   m_Layer: 0
   m_Name: Enemy_touro
   m_TagString: Enemy
@@ -1230,6 +1259,19 @@ AudioSource:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
+--- !u!114 &1807279799
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1807279791}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 95cbe5a9dbd668f4dbfa38567246f2ab, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  speed: 5
 --- !u!1 &1838460773
 GameObject:
   m_ObjectHideFlags: 0

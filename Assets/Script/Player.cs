@@ -74,6 +74,8 @@ public class Player : MonoBehaviour
 
         // Destroi o player depois de um pequeno delay (pra som tocar)
         Destroy(gameObject, 0.5f);
+        Time.timeScale = 0f; // pausa tudo no jogo
+
     }
 
     // void OnTriggerEnter2D(Collider2D other)
