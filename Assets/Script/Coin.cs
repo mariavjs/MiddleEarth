@@ -24,6 +24,8 @@ public class Coin : MonoBehaviour
 
             // desativa (ou destrói) a moeda
             Destroy(gameObject);
+            // Destroy(gameObject, 0.01f);
+
         }
     }
 }
