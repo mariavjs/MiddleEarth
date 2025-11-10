@@ -1,5 +1,5 @@
-using UnityEngine; 
-using TMPro; 
+using UnityEngine;
+using TMPro;
 
 public class Player : MonoBehaviour
 {
@@ -12,10 +12,13 @@ public class Player : MonoBehaviour
     private bool canJump = true;
 
     [Header("Som e Vidas")]
-    public AudioSource deathSound;
+    public AudioClip hitSound;   // som quando leva dano
+    public AudioClip deathSound; // som quando morre
+    private AudioSource audioSource;
+
     public int maxLives = 3;
     public int currentLives;
-    public TextMeshProUGUI livesText; // arraste o texto de UI aqui (opcional)
+    public TextMeshProUGUI livesText;
 
     private bool isDead = false;
 
@@ -23,6 +26,11 @@ public class Player : MonoBehaviour
     {
         rb = GetComponent<Rigidbody2D>();
         animator = GetComponent<Animator>();
+
+        // <-- A linha que faltava: pega o AudioSource anexado ao Player
+        audioSource = GetComponent<AudioSource>();
+        if (audioSource == null)
+            Debug.LogWarning($"[{name}] AudioSource não encontrado no Player. Adicione um AudioSource ao GameObject.");
 
         currentLives = maxLives;
         UpdateLivesUI();
@@ -37,11 +45,16 @@ public class Player : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.Space) && canJump)
         {
             Jump();
-            animator.SetBool("Jump", true);
+            if (animator != null) animator.SetBool("Jump", true);
             canJump = false;
         }
 
-        // 🧠 Verifica se caiu da tela (ex: y < -10)
+        // teste rápido: tocar som manualmente com K (útil pra debug)
+        if (Input.GetKeyDown(KeyCode.K))
+        {
+            if (audioSource != null && hitSound != null) audioSource.PlayOneShot(hitSound);
+        }
+
         if (transform.position.y < -10f)
         {
             TakeDamage(1);
@@ -52,7 +65,7 @@ public class Player : MonoBehaviour
     {
         if (rb == null) return;
 
-        Vector2 v = rb.linearVelocity;
+        Vector2 v = rb.linearVelocity; // uso correto
         v.y = jumpHeight;
         rb.linearVelocity = v;
     }
@@ -62,11 +75,10 @@ public class Player : MonoBehaviour
         if (collision.gameObject.CompareTag("Ground"))
         {
             canJump = true;
-            animator.SetBool("Jump", false);
+            if (animator != null) animator.SetBool("Jump", false);
         }
     }
 
-    // 🩸 Player toma dano
     public void TakeDamage(int amount)
     {
         if (isDead) return;
@@ -74,32 +86,38 @@ public class Player : MonoBehaviour
         currentLives -= amount;
         UpdateLivesUI();
 
+        // toca som de hit (imediato)
+        if (hitSound != null && audioSource != null)
+        {
+            audioSource.PlayOneShot(hitSound);
+        }
+
         if (currentLives <= 0)
         {
             Die();
         }
         else
         {
-            // opcional: animação de dano
-            if (animator != null)
-                animator.SetTrigger("Hurt");
+            if (animator != null) animator.SetTrigger("Hurt");
         }
     }
 
-    // ☠️ Player morre
     public void Die()
     {
         if (isDead) return;
         isDead = true;
 
-        if (deathSound != null)
-            deathSound.Play();
+        // toca som de morte (toca e esperamos antes de destruir)
+        if (deathSound != null && audioSource != null)
+        {
+            audioSource.PlayOneShot(deathSound);
+        }
 
         this.enabled = false;
 
-        // Destroi o player depois de um pequeno delay (pra som tocar)
+        // espera um tempo curto pra som tocar e então destrói (0.5s é um bom começo)
         Destroy(gameObject, 0.5f);
-        Time.timeScale = 0f; // pausa tudo no jogo
+        Time.timeScale = 0f;
     }
 
     private void UpdateLivesUI()
