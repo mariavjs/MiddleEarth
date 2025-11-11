@@ -2,31 +2,19 @@ using UnityEngine;
 
 public class EnemyKillOnContact : MonoBehaviour
 {
-    public AudioSource killSound;
+    [Header("Configuração do inimigo")]
+    public int damage = 1; // Eye = 1, Touro = 2
 
     private void OnTriggerEnter2D(Collider2D other)
     {
-        if (other.CompareTag("Player"))
+        // Garante que só reage ao Player
+        if (!other.CompareTag("Player")) return;
+
+        // Acessa o script Player e aplica dano
+        Player player = other.GetComponent<Player>();
+        if (player != null)
         {
-            // Toca o som do inimigo (se tiver)
-            if (killSound != null)
-            {
-                killSound.Play();
-            }
-
-            // Tenta pegar o script Player no objeto
-            Player player = other.GetComponent<Player>();
-
-            if (player != null)
-            {
-                // Chama o método de morte do player
-                player.Die();
-            }
-            else
-            {
-                // Se por algum motivo não achar o script, destrói direto
-                Destroy(other.gameObject);
-            }
+            player.TakeDamage(damage);
         }
     }
 }
