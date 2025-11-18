@@ -127,4 +127,5 @@ public class Player : MonoBehaviour
             livesText.text = "Lives: " + currentLives;
         }
     }
+
 }

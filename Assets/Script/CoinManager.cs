@@ -35,6 +35,7 @@ public class CoinManager : MonoBehaviour
         }
     }
 
+
     public void ResetCoins()
     {
         coinCount = 0;
