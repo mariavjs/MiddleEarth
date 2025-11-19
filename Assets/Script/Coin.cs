@@ -9,23 +9,28 @@ public class Coin : MonoBehaviour
     {
         if (collected) return; // evita coletar duas vezes
 
-        if (other.CompareTag("Player"))
+        if (other != null && other.CompareTag("Player"))
         {
             collected = true;
 
-            // toca som (não depende de AudioSource no objeto)
+            // toca som (independe de AudioSource no objeto)
             if (collectSound != null)
             {
-                AudioSource.PlayClipAtPoint(collectSound, transform.position);
+                AudioSource.PlayClipAtPoint(collectSound, Camera.main != null ? Camera.main.transform.position : transform.position);
             }
 
-            // adiciona +1 moeda no contador global
-            CoinManager.Instance.AddCoin();
+            // adiciona +1 moeda no contador global (só se existir)
+            if (CoinManager.Instance != null)
+            {
+                CoinManager.Instance.AddCoin();
+            }
+            else
+            {
+                Debug.LogWarning("[Coin] CoinManager.Instance é null ao coletar moeda. Verifique se o CoinManager está na cena e ativo.");
+            }
 
-            // desativa (ou destrói) a moeda
+            // destrói a moeda imediatamente
             Destroy(gameObject);
-            // Destroy(gameObject, 0.01f);
-
         }
     }
 }

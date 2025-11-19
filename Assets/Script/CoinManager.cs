@@ -8,13 +8,18 @@ public class CoinManager : MonoBehaviour
     private int coinCount = 0;
     public TextMeshProUGUI coinText; // <-- aqui o tipo muda
 
-    void Awake()
+void Awake()
+{
+    if (Instance == null)
     {
-        if (Instance == null)
-            Instance = this;
-        else
-            Destroy(gameObject);
+        Instance = this;
+        DontDestroyOnLoad(gameObject); // mantém o objeto entre cenas
     }
+    else
+    {
+        Destroy(gameObject);
+    }
+}
 
     void Start()
     {
@@ -31,10 +36,10 @@ public class CoinManager : MonoBehaviour
     {
         if (coinText != null)
         {
-            coinText.text = "Coins: " + coinCount;
+            // imprime contagem das moedas
+            coinText.text = coinCount.ToString();
         }
     }
-
 
     public void ResetCoins()
     {
