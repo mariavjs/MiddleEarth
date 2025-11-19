@@ -29,8 +29,8 @@ public class CameraPlaneSwitcher : MonoBehaviour
 
         // configurar tamanho da camera (apenas uma vez)
         float bandH = background.GetBandHeight(1);
-        if (bandH > 0f)
-            cam.orthographicSize = bandH / 2f;
+        // if (bandH > 0f)
+        //     cam.orthographicSize = bandH / 2f;
 
         // posiciona no centro da banda do meio
         currentBand = 1;
