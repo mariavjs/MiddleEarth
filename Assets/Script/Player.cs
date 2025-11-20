@@ -126,18 +126,31 @@ public class Player : MonoBehaviour
         if (isDead) return;
         isDead = true;
 
-
         if (deathSound != null && audioSource != null)
-
             audioSource.PlayOneShot(deathSound);
 
-
+        // desativa o comportamento do player
         this.enabled = false;
 
+        // opcional: animação de morte já disparada antes (ex: animator.SetTrigger("Die"); )
 
+        // Informar GameManager e abrir Game Over (GameManager pode salvar highscore, etc)
+        if (GameManager.Instance != null)
+        {
+            GameManager.Instance.OnPlayerDeath();
+        }
+
+        // Mostrar painel de Game Over (vai pausar o jogo)
+        if (GameOverManager.Instance != null)
+        {
+            GameOverManager.Instance.ShowGameOver();
+        }
+
+        // destrói o objeto visual depois de um tempo, se desejar
         Destroy(gameObject, 0.5f);
-        Time.timeScale = 0f;
+        // não setamos Time.timeScale = 0f aqui — o GameOverManager cuida disso
     }
+
 
     // Atualiza as imagens de coração e (opcional) texto
     private void UpdateLivesUI()
