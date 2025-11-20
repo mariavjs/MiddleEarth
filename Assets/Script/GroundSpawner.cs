@@ -2,7 +2,8 @@ using UnityEngine;
 
 public class GroundSpawner : MonoBehaviour
 {
-    public GameObject groundPrefab;
+    // Lista de prefabs de ground para escolher aleatoriamente
+    public GameObject[] groundPrefabs;
     
     // Referência ao objeto de cena que marca onde spawnar o próximo tile.
     // Arraste o GameObject "NextSpawn" aqui no Inspector.
@@ -13,6 +14,13 @@ public class GroundSpawner : MonoBehaviour
 
     void Start()
     {
+        // Validação
+        if (groundPrefabs == null || groundPrefabs.Length == 0)
+        {
+            Debug.LogError("[GroundSpawner] Nenhum prefab atribuído! Arraste os prefabs de ground no Inspector.");
+            return;
+        }
+
         // O primeiro tile já está na cena, então apenas inicializa a posição do próximo spawn
         if (nextSpawnMarker != null)
         {
@@ -33,15 +41,25 @@ public class GroundSpawner : MonoBehaviour
             return;
         }
 
+        if (groundPrefabs == null || groundPrefabs.Length == 0)
+        {
+            Debug.LogError("[GroundSpawner] Nenhum prefab disponível para spawnar!");
+            return;
+        }
+
         isSpawning = true;
 
+        // Escolhe um prefab aleatório da lista
+        int randomIndex = Random.Range(0, groundPrefabs.Length);
+        GameObject selectedPrefab = groundPrefabs[randomIndex];
+
         // Instancia o próximo tile na posição do NextSpawn
-        GameObject tile = Instantiate(groundPrefab, nextTileSpawnPos, Quaternion.identity);
+        GameObject tile = Instantiate(selectedPrefab, nextTileSpawnPos, Quaternion.identity);
         
         // Garante que o tile não tenha rotação (previne giros)
         tile.transform.rotation = Quaternion.identity;
         
-        Debug.Log("[GroundSpawner] Tile spawnado em: " + nextTileSpawnPos);
+        Debug.Log($"[GroundSpawner] Tile '{selectedPrefab.name}' (índice {randomIndex}) spawnado em: {nextTileSpawnPos}");
 
         // Atualiza a posição do próximo spawn (continua usando o mesmo NextSpawn de cena)
         if (nextSpawnMarker != null)
