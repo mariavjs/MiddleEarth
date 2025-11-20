@@ -1,34 +1,51 @@
+// CoinManager.cs
 using UnityEngine;
 using TMPro;
 
 public class CoinManager : MonoBehaviour
 {
-    public static CoinManager Instance; // Singleton
+    public static CoinManager Instance;
 
-    private int coinCount = 0;
-    public TextMeshProUGUI coinText; // <-- aqui o tipo muda
+    private int sessionCoins = 0;     // moedas coletadas nesta partida
+    private int totalCoins = 0;       // saldo persistido do jogador
 
-void Awake()
-{
-    if (Instance == null)
+    public TextMeshProUGUI coinText;  // texto que mostra "🪙 X" (na HUD)
+    private const string COINS_KEY = "PLAYER_COINS"; // PlayerPrefs key
+
+    void Awake()
     {
-        Instance = this;
-        DontDestroyOnLoad(gameObject); // mantém o objeto entre cenas
+        if (Instance == null)
+        {
+            Instance = this;
+            // DontDestroyOnLoad(gameObject); // opcional se quiser persistir CoinManager entre cenas
+        }
+        else
+        {
+            Destroy(gameObject);
+            return;
+        }
     }
-    else
-    {
-        Destroy(gameObject);
-    }
-}
 
     void Start()
     {
+        LoadTotalCoins();
         UpdateUI();
     }
 
-    public void AddCoin()
+    // chamada pelas moedas (Coin.cs)
+    public void AddCoin(int amount = 1)
     {
-        coinCount++;
+        sessionCoins += amount;
+        totalCoins += amount;
+
+        UpdateUI();
+        SaveTotalCoins();
+    }
+
+    // reseta a contagem da sessão (por exemplo, no início de cada partida)
+    public void ResetSessionCoins()
+    {
+        sessionCoins = 0;
         UpdateUI();
     }
 
@@ -36,14 +53,39 @@ void Awake()
     {
         if (coinText != null)
         {
-            // imprime contagem das moedas
-            coinText.text = coinCount.ToString();
+            // mostra o ícone (pode ser emoji) seguido do saldo total ou da sessão
+            // escolha: mostrar total persistido para shop: totalCoins
+            // ou mostrar sessão: sessionCoins
+            // aqui eu mostro total acumulado (para shop) e sessão entre parenteses:
+            coinText.text =  totalCoins.ToString(); 
         }
     }
 
-    public void ResetCoins()
+    private void SaveTotalCoins()
     {
-        coinCount = 0;
-        UpdateUI();
+        PlayerPrefs.SetInt(COINS_KEY, totalCoins);
+        PlayerPrefs.Save();
+    }
+
+    private void LoadTotalCoins()
+    {
+        totalCoins = PlayerPrefs.GetInt(COINS_KEY, 0);
+    }
+
+    // utilitários públicos
+    public int GetTotalCoins() => totalCoins;
+    public int GetSessionCoins() => sessionCoins;
+
+    // opcional: gastar moedas (usado pelo Shop)
+    public bool TrySpendCoins(int cost)
+    {
+        if (totalCoins >= cost)
+        {
+            totalCoins -= cost;
+            SaveTotalCoins();
+            UpdateUI();
+            return true;
+        }
+        return false;
     }
 }
