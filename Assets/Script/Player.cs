@@ -73,7 +73,7 @@ public class Player : MonoBehaviour
             if (audioSource != null && hitSound != null) audioSource.PlayOneShot(hitSound);
         }
 
-        if (transform.position.y < -15f)
+        if (transform.position.y < -10f)
         {
             TakeDamage(1);
         }
