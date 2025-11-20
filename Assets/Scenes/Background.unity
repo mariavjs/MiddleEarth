@@ -309,7 +309,7 @@ Transform:
   m_GameObject: {fileID: 211466991}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 16.59, y: -1.46, z: -0.09418117}
+  m_LocalPosition: {x: 16.99, y: -4.5, z: -0.09418117}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -578,11 +578,11 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 645065403564633945, guid: ebc3eb1d8af92e062a256425793988d1, type: 3}
       propertyPath: m_LocalPosition.x
-      value: -27.07
+      value: -8
       objectReference: {fileID: 0}
     - target: {fileID: 645065403564633945, guid: ebc3eb1d8af92e062a256425793988d1, type: 3}
       propertyPath: m_LocalPosition.y
-      value: -2.35
+      value: -4.5
       objectReference: {fileID: 0}
     - target: {fileID: 645065403564633945, guid: ebc3eb1d8af92e062a256425793988d1, type: 3}
       propertyPath: m_LocalPosition.z
@@ -615,6 +615,10 @@ PrefabInstance:
     - target: {fileID: 645065403564633945, guid: ebc3eb1d8af92e062a256425793988d1, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 740345184202579115, guid: ebc3eb1d8af92e062a256425793988d1, type: 3}
+      propertyPath: m_Enabled
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 1220065760823956054, guid: ebc3eb1d8af92e062a256425793988d1, type: 3}
       propertyPath: m_BodyType
@@ -975,10 +979,6 @@ MonoBehaviour:
   jumpHeight: 7
   hitSound: {fileID: 0}
   deathSound: {fileID: 0}
-  maxLives: 3
-  currentLives: 0
-  livesText: {fileID: 0}
-  viewportPos: {x: 0.25, y: 0.5}
 --- !u!95 &1963549107
 Animator:
   serializedVersion: 7
@@ -1388,7 +1388,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: efc8a17ba4eaa3305b4614265f0197e3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  groundPrefab: {fileID: 2947550199132401288, guid: ebc3eb1d8af92e062a256425793988d1, type: 3}
+  groundPrefabs:
+  - {fileID: 2947550199132401288, guid: ebc3eb1d8af92e062a256425793988d1, type: 3}
+  - {fileID: 2947550199132401288, guid: 39c7b9b129586f82a81685e9dad47729, type: 3}
+  - {fileID: 2947550199132401288, guid: 03e506a494b3b39338b28ec1526dda06, type: 3}
+  - {fileID: 2947550199132401288, guid: 903fc62da2b6c0c0f9fe481c02dfcdda, type: 3}
+  - {fileID: 2947550199132401288, guid: 1c89d1032a85cd8f9a3a68807f2616dd, type: 3}
   nextSpawnMarker: {fileID: 211466992}
 --- !u!1 &2137212109
 GameObject:
