@@ -35,6 +35,8 @@ public class GameManager : MonoBehaviour
     void Start()
     {
         ResetStats();
+        LoadHighScore();
+
     }
 
     void Update()
@@ -88,6 +90,13 @@ public class GameManager : MonoBehaviour
         SaveHighScoreIfNeeded();
         // você pode abrir o painel de GameOver aqui
     }
+
+    private float highScore = 0f;
+
+    private void LoadHighScore()
+    {
+        highScore = PlayerPrefs.GetFloat(HIGH_SCORE_KEY, 0f);
+    }    
 
     void SaveHighScoreIfNeeded()
     {
