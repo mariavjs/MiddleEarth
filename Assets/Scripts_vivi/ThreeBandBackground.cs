@@ -1,79 +1,77 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-//[ExecuteAlways]
 public class ThreeBandBackground : MonoBehaviour
 {
+
+    // --- coloque dentro da classe TwoBandBackground ou ThreeBandBackground ---
+public Player player; // referência pro jogador
+
+// retorna altura da banda (pode usar fixedBandHeight)
+public float GetBandHeight(int index)
+{
+    return fixedBandHeight;
+}
+
+// retorna a posição vertical da banda
+public float GetBandCenterY(int index)
+{
+    if (bands == null || index < 0 || index >= bands.Length) return 0f;
+    return bands[index].yCenter;
+}
     [System.Serializable]
     public class BandConfig
     {
         public string name = "Band";
         public float speed = 3f;
-        public Color darkColor = Color.black;
-        public Color lightColor = Color.white;
-
-        [Tooltip("Sprites usadas nessa faixa (deixe em branco se quiser só cor)")]
-        public Sprite darkSprite;
-        public Sprite lightSprite;
-
+        [Tooltip("Sprite da esquerda")]
+        public Sprite leftSprite;
+        [Tooltip("Sprite da direita (opcional, se quiser alternar)")]
+        public Sprite rightSprite;
         [HideInInspector] public float yCenter = 0f;
-        [HideInInspector] public float bandHeight = 0f;
     }
 
-    [Header("Prefab (1x1 sprite)")]
+    [Header("Prefab base (deve conter SpriteRenderer)")]
     public GameObject blockPrefab;
 
-    [Header("Altura fixa de cada banda (em units) — cada faixa terá esta altura")]
+    [Header("Altura fixa de cada banda (em units)")]
     public float fixedBandHeight = 4f;
 
-    [Header("Largura de cada bloco (world units). Deve ser maior que a largura da câmera")]
-    public float blockWidth = 50f;
+    [Header("Largura de cada bloco (world units)")]
+    public float blockWidth = 25f;
 
-    [Header("Configura cada faixa — de cima pra baixo: Céu / Terra / Inferno")]
-    public BandConfig[] bands = new BandConfig[3];
-
-    [Header("Player para sincronizar a velocidade")]
-    public Player player; // arraste o Player no Inspector
+    [Header("Bandas — de cima pra baixo: Terra / Inferno")]
+    public BandConfig[] bands = new BandConfig[2];
 
     private List<GameObject[]> bandBlocks = new List<GameObject[]>();
-    private float totalHeight;
 
-private float GetCameraWidth()
-{
-    var cam = Camera.main;
-    if (cam == null) return 10f;
-    return cam.orthographicSize * 2f * cam.aspect;
-}
-    void Awake()
-{
-    if (blockWidth <= 0f)
-        blockWidth = GetCameraWidth() * 1.1f; // um pouco maior que a tela
-
-    Setup();
-}
-
-    void OnValidate()
+    private float GetCameraWidth()
     {
-        if (bands == null || bands.Length != 3)
-        {
-            var tmp = new BandConfig[3];
-            for (int i = 0; i < 3; i++)
-                tmp[i] = (i < bands?.Length ? bands[i] : new BandConfig());
-            bands = tmp;
-        }
+        var cam = Camera.main;
+        if (cam == null) return 10f;
+        return cam.orthographicSize * 2f * cam.aspect;
     }
-    
+
+    void Awake()
+    {
+        if (blockWidth <= 0f)
+            blockWidth = GetCameraWidth() * 1.1f;
+
+        Setup();
+    }
+
+    [ContextMenu("Rebuild Bands")]
+    public void Rebuild() => Setup();
 
     public void Setup()
     {
         if (blockPrefab == null)
         {
-            Debug.LogError("[ThreeBandBackground] BlockPrefab não atribuído.");
+            Debug.LogError("[TwoBandBackground] BlockPrefab não atribuído.");
             return;
         }
 
         float bandH = Mathf.Max(0.01f, fixedBandHeight);
-        totalHeight = bandH * 3f;
 
         // Limpa faixas antigas
         for (int i = transform.childCount - 1; i >= 0; i--)
@@ -84,16 +82,14 @@ private float GetCameraWidth()
         }
         bandBlocks.Clear();
 
-        // Calcula os centros (céu, terra, inferno)
-        float topCenterY = bandH;
-        float midCenterY = 0f;
-        float botCenterY = -bandH;
+        // Calcula posições Y: terra no topo, inferno abaixo
+        float topY = 0f;
+        float bottomY = -bandH;
 
-        for (int i = 0; i < 3; i++)
+        for (int i = 0; i < bands.Length; i++)
         {
             var cfg = bands[i];
-            cfg.bandHeight = bandH;
-            cfg.yCenter = (i == 0) ? topCenterY : (i == 1 ? midCenterY : botCenterY);
+            cfg.yCenter = (i == 0) ? topY : bottomY;
 
             GameObject[] arr = new GameObject[2];
 
@@ -104,26 +100,17 @@ private float GetCameraWidth()
                 b.transform.position = new Vector3(j * blockWidth, cfg.yCenter, 0f);
 
                 var sr = b.GetComponent<SpriteRenderer>();
-                if (sr != null)
+                if (sr == null)
                 {
-                    // Escolhe qual sprite usar
-                    Sprite chosenSprite = (j % 2 == 0) ? cfg.darkSprite : cfg.lightSprite;
-                    if (chosenSprite != null)
-                    {
-                        sr.sprite = chosenSprite;
-                        sr.drawMode = SpriteDrawMode.Tiled; // Faz o tile automático
-                        sr.size = new Vector2(blockWidth, bandH);
-                        sr.color = Color.white; // Garante que não tinge a sprite
-                    }
-                    else
-                    {
-                        sr.sprite = null;
-                        sr.drawMode = SpriteDrawMode.Simple;
-                        sr.color = (j % 2 == 0) ? cfg.darkColor : cfg.lightColor;
-                    }
+                    Debug.LogError("Prefab precisa ter SpriteRenderer!");
+                    continue;
                 }
 
-                arr[j] = b;
+                Sprite spriteToUse = (j % 2 == 0) ? cfg.leftSprite : cfg.rightSprite ?? cfg.leftSprite;
+                sr.sprite = spriteToUse;
+                sr.drawMode = SpriteDrawMode.Tiled;
+                sr.size = new Vector2(blockWidth, bandH);
+                sr.color = Color.white;
             }
 
             bandBlocks.Add(arr);
@@ -132,29 +119,19 @@ private float GetCameraWidth()
 
     void Update()
     {
-        if (blockPrefab == null || bands == null || bands.Length != 3) return;
-
-        // // 🔹 Controla a velocidade das faixas com base no Player
-        // if (player != null)
-        // {
-        //     bands[0].speed = player.speed * 0.3f;   // Céu = mais lento
-        //     bands[1].speed = player.speed;          // Terra = igual ao player
-        //     bands[2].speed = player.speed * 1.2f;   // Inferno = mais rápido
-        // }
+        if (bandBlocks.Count == 0) return;
 
         for (int i = 0; i < bands.Length; i++)
         {
             var cfg = bands[i];
-            var blocks = bandBlocks.Count > i ? bandBlocks[i] : null;
-            if (blocks == null) continue;
-
+            var blocks = bandBlocks[i];
             float move = cfg.speed * Time.deltaTime;
 
-            // Move cada bloco
+            // Move blocos para a esquerda
             for (int k = 0; k < blocks.Length; k++)
                 blocks[k].transform.position += Vector3.left * move;
 
-            // Reposiciona quando sai da tela
+            // Reposiciona blocos que saíram da tela
             for (int k = 0; k < blocks.Length; k++)
             {
                 var b = blocks[k];
@@ -169,20 +146,5 @@ private float GetCameraWidth()
                 }
             }
         }
-    }
-
-    [ContextMenu("Rebuild Bands")]
-    public void Rebuild() => Setup();
-
-    public float GetBandCenterY(int index)
-    {
-        if (bands == null || index < 0 || index >= bands.Length) return 0f;
-        return bands[index].yCenter;
-    }
-
-    public float GetBandHeight(int index)
-    {
-        if (bands == null || index < 0 || index >= bands.Length) return fixedBandHeight;
-        return bands[index].bandHeight;
     }
 }
