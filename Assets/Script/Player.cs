@@ -27,16 +27,11 @@ public class Player : MonoBehaviour
 
     private bool isDead = false;
 
-    [Header("Fixar na tela")]
-    [Tooltip("Posição em viewport onde o player ficará (x: 0..1, y usado só para referência)")]
-    public Vector2 viewportPos = new Vector2(0.25f, 0.5f);
-    private Camera mainCam;
-    private float camToPlayerDistance = 10f;
-
     void Start()
     {
         rb = GetComponent<Rigidbody2D>();
         animator = GetComponent<Animator>();
+
 
         audioSource = GetComponent<AudioSource>();
         if (audioSource == null)
@@ -55,21 +50,15 @@ public class Player : MonoBehaviour
             currentLives = Mathf.Clamp(startingLives, 0, maxDisplayable);
         }
 
-        UpdateLivesUI();
 
-        mainCam = Camera.main;
-        if (mainCam != null)
-        {
-            // distância entre câmera e o plano do player (normalmente cam.z = -10, player.z = 0 => 10)
-            camToPlayerDistance = Mathf.Abs(mainCam.transform.position.z - transform.position.z);
-        }
+        UpdateLivesUI();
     }
 
     void Update()
     {
         if (isDead) return;
 
-        // speed += acceleration * Time.deltaTime; // removido, se não usar movimento horizontal
+        // speed += acceleration * Time.deltaTime;
 
         if (Input.GetKeyDown(KeyCode.Space) && canJump)
         {
@@ -77,6 +66,7 @@ public class Player : MonoBehaviour
             if (animator != null) animator.SetBool("Jump", true);
             canJump = false;
         }
+
 
         if (Input.GetKeyDown(KeyCode.K))
         {
@@ -89,26 +79,11 @@ public class Player : MonoBehaviour
         }
     }
 
-    // Usamos FixedUpdate para posicionar X via MovePosition (compatível com física)
-    void FixedUpdate()
-    {
-        if (rb == null || mainCam == null) return;
-
-        // calcula o X em world correspondente ao viewportPos.x
-        Vector3 vp = new Vector3(viewportPos.x, viewportPos.y, camToPlayerDistance);
-        Vector3 worldPoint = mainCam.ViewportToWorldPoint(vp);
-
-        // mantemos a Y física (rb.position.y) e z original
-        Vector2 target = new Vector2(worldPoint.x, rb.position.y);
-
-        // MovePosition respeita a física e é suave em FixedUpdate
-        rb.MovePosition(target);
-    }
-
     void Jump()
     {
         if (rb == null) return;
         Vector2 v = rb.linearVelocity;
+
         v.y = jumpHeight;
         rb.linearVelocity = v;
     }
@@ -130,8 +105,11 @@ public class Player : MonoBehaviour
         currentLives = Mathf.Max(0, currentLives - amount);
         UpdateLivesUI();
 
+
         if (hitSound != null && audioSource != null)
+
             audioSource.PlayOneShot(hitSound);
+
 
         if (currentLives <= 0)
         {
@@ -148,10 +126,15 @@ public class Player : MonoBehaviour
         if (isDead) return;
         isDead = true;
 
+
         if (deathSound != null && audioSource != null)
+
             audioSource.PlayOneShot(deathSound);
 
+
         this.enabled = false;
+
+
         Destroy(gameObject, 0.5f);
         Time.timeScale = 0f;
     }
