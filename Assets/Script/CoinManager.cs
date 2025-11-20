@@ -9,7 +9,7 @@ public class CoinManager : MonoBehaviour
     private int sessionCoins = 0;     // moedas coletadas nesta partida
     private int totalCoins = 0;       // saldo persistido do jogador
 
-    public TextMeshProUGUI coinText;  // texto que mostra "🪙 X" (na HUD)
+    public TextMeshProUGUI coinText; 
     private const string COINS_KEY = "PLAYER_COINS"; // PlayerPrefs key
 
     void Awake()
@@ -29,7 +29,8 @@ public class CoinManager : MonoBehaviour
     void Start()
     {
         LoadTotalCoins();
-        UpdateUI();
+        // reset session coins at the start of a round
+        ResetSessionCoins(); // ResetSessionCoins will call UpdateUI()
     }
 
     // chamada pelas moedas (Coin.cs)
@@ -57,7 +58,8 @@ public class CoinManager : MonoBehaviour
             // escolha: mostrar total persistido para shop: totalCoins
             // ou mostrar sessão: sessionCoins
             // aqui eu mostro total acumulado (para shop) e sessão entre parenteses:
-            coinText.text =  totalCoins.ToString(); 
+            // show session coins on the HUD; keep totalCoins persisted for shop use
+            coinText.text = sessionCoins.ToString();
         }
     }
 

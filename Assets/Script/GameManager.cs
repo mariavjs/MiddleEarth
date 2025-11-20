@@ -11,15 +11,23 @@ public class GameManager : MonoBehaviour
     public TextMeshProUGUI timeText;       // arraste TimeText (TMP)
     public TextMeshProUGUI distanceText;   // arraste DistanceText (TMP)
 
-    [Header("Ajustes")]
-    public float distanceMultiplier = 1f;        // converte unidades internas para "m"
-    public bool increaseSpeedWithDistance = false;
-    public float speedIncreaseDistance = 100f;   // a cada X metros aplica aumento
-    public float speedIncreaseAmount = 0.5f;     // valor adicionado à player.speed
-    public bool useMultiplicativeIncrease = false;
-    public float speedIncreaseMultiplier = 1.05f;
+    [Header("Ajustes - velocidade / distância")]
+    public float baseSpeed = 5f;                 // velocidade inicial do mundo
+    public float maxSpeed = 25f;                 // teto da velocidade
+    [Tooltip("Se true, a velocidade cresce continuamente com a distância (linear).")]
+    public bool continuousIncreaseWithDistance = false;
+    [Tooltip("Quanto a velocidade cresce por unidade de distância (apenas para continuousIncreaseWithDistance).")]
+    public float speedPerMeter = 0.01f;
 
-    // estado
+    [Header("Ajustes - aumento por passos (opcional)")]
+    public bool increaseSpeedWithDistance = false;   // comportamento legacy (se quer passos)
+    public float speedIncreaseDistance = 100f;       // a cada X metros aplica aumento por passo
+    public float speedIncreaseAmount = 0.5f;         // valor adicionado ao currentSpeed por passo (aditivo)
+    public bool useMultiplicativeIncrease = false;   // se true, multiplica por speedIncreaseMultiplier
+    public float speedIncreaseMultiplier = 1.05f;    // multiplicador por passo
+
+    [Header("Debug / Interno")]
+    [SerializeField] private float currentSpeed = 0f;   // velocidade atual do mundo (exposta só pra debug)
     private float elapsedTime = 0f;
     private float distance = 0f;
     private float nextSpeedIncreaseAt = 0f;
@@ -36,38 +44,56 @@ public class GameManager : MonoBehaviour
     {
         ResetStats();
         LoadHighScore();
-
     }
 
     void Update()
     {
-        // não atualiza quando o jogo está "pausado" (timeScale 0)
         if (Time.timeScale <= 0f) return;
 
         // tempo
         elapsedTime += Time.deltaTime;
 
-        // velocidade usada para calcular distância
-        float currentSpeed = (player != null) ? player.speed : 0f;
+        // --- calcula a velocidade atual do mundo (currentSpeed) ---
+        // base
+        currentSpeed = baseSpeed;
 
-        // distância
-        distance += currentSpeed * Time.deltaTime * distanceMultiplier;
-
-        // aumento de velocidade por distância (opcional)
-        if (increaseSpeedWithDistance && player != null && distance >= nextSpeedIncreaseAt)
+        // se aumento contínuo com a distância estiver ligado:
+        if (continuousIncreaseWithDistance)
         {
-            ApplySpeedIncrease();
+            currentSpeed = baseSpeed + distance * speedPerMeter;
+        }
+
+        // limita pelo teto
+        if (currentSpeed > maxSpeed) currentSpeed = maxSpeed;
+
+        // se ainda usar aumento por passos (legacy/alternativa), checa se atingimos o próximo checkpoint
+        if (increaseSpeedWithDistance && distance >= nextSpeedIncreaseAt)
+        {
+            ApplyStepSpeedIncrease();
             nextSpeedIncreaseAt += speedIncreaseDistance;
+        }
+
+        // garanta o teto após step increase
+        if (currentSpeed > maxSpeed) currentSpeed = maxSpeed;
+
+        // --- atualiza a distância com base na velocidade do mundo (o mundo move-se currentSpeed unidades/s) ---
+        distance += currentSpeed * Time.deltaTime * 1f; // distanceMultiplier se necessário pode ser aplicado aqui
+
+        // --- aplica a velocidade calculada ao player (single source of truth) ---
+        if (player != null)
+        {
+            player.speed = currentSpeed;
         }
 
         UpdateUI();
     }
 
-    void ApplySpeedIncrease()
+    void ApplyStepSpeedIncrease()
     {
-        if (player == null) return;
-        if (useMultiplicativeIncrease) player.speed *= speedIncreaseMultiplier;
-        else player.speed += speedIncreaseAmount;
+        if (useMultiplicativeIncrease)
+            currentSpeed *= speedIncreaseMultiplier;
+        else
+            currentSpeed += speedIncreaseAmount;
     }
 
     void UpdateUI()
@@ -88,15 +114,14 @@ public class GameManager : MonoBehaviour
     public void OnPlayerDeath()
     {
         SaveHighScoreIfNeeded();
-        // você pode abrir o painel de GameOver aqui
+        // abrir painel de Game Over, etc.
     }
-
-    private float highScore = 0f;
 
     private void LoadHighScore()
     {
-        highScore = PlayerPrefs.GetFloat(HIGH_SCORE_KEY, 0f);
-    }    
+        // garante que a chave exista
+        float prev = PlayerPrefs.GetFloat(HIGH_SCORE_KEY, 0f);
+    }
 
     void SaveHighScoreIfNeeded()
     {
@@ -112,12 +137,14 @@ public class GameManager : MonoBehaviour
     public float GetDistance() => distance;
     public float GetElapsedTime() => elapsedTime;
     public float GetHighScore() => PlayerPrefs.GetFloat(HIGH_SCORE_KEY, 0f);
+    public float GetCurrentSpeed() => currentSpeed;
 
     public void ResetStats()
     {
         elapsedTime = 0f;
         distance = 0f;
         nextSpeedIncreaseAt = speedIncreaseDistance;
+        currentSpeed = baseSpeed;
         UpdateUI();
     }
 
