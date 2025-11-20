@@ -27,6 +27,12 @@ public class Player : MonoBehaviour
 
     private bool isDead = false;
 
+    [Header("Fixar na tela")]
+    [Tooltip("Posição em viewport onde o player ficará (x: 0..1, y usado só para referência)")]
+    public Vector2 viewportPos = new Vector2(0.25f, 0.5f);
+    private Camera mainCam;
+    private float camToPlayerDistance = 10f;
+
     void Start()
     {
         rb = GetComponent<Rigidbody2D>();
@@ -50,13 +56,20 @@ public class Player : MonoBehaviour
         }
 
         UpdateLivesUI();
+
+        mainCam = Camera.main;
+        if (mainCam != null)
+        {
+            // distância entre câmera e o plano do player (normalmente cam.z = -10, player.z = 0 => 10)
+            camToPlayerDistance = Mathf.Abs(mainCam.transform.position.z - transform.position.z);
+        }
     }
 
     void Update()
     {
         if (isDead) return;
 
-        speed += acceleration * Time.deltaTime;
+        // speed += acceleration * Time.deltaTime; // removido, se não usar movimento horizontal
 
         if (Input.GetKeyDown(KeyCode.Space) && canJump)
         {
@@ -74,6 +87,22 @@ public class Player : MonoBehaviour
         {
             TakeDamage(1);
         }
+    }
+
+    // Usamos FixedUpdate para posicionar X via MovePosition (compatível com física)
+    void FixedUpdate()
+    {
+        if (rb == null || mainCam == null) return;
+
+        // calcula o X em world correspondente ao viewportPos.x
+        Vector3 vp = new Vector3(viewportPos.x, viewportPos.y, camToPlayerDistance);
+        Vector3 worldPoint = mainCam.ViewportToWorldPoint(vp);
+
+        // mantemos a Y física (rb.position.y) e z original
+        Vector2 target = new Vector2(worldPoint.x, rb.position.y);
+
+        // MovePosition respeita a física e é suave em FixedUpdate
+        rb.MovePosition(target);
     }
 
     void Jump()
