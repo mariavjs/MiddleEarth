@@ -5,10 +5,10 @@ public class PitYTrigger : MonoBehaviour
 {
     [Header("Referências")]
     public Transform player;
-    public CameraFollow cameraFollow;      // arraste aqui a Main Camera (que tem CameraFollow)
-    public FastFallOnPit fastFallOnPit;    // arraste a instância do FastFallOnPit
-    public GameObject hellBackground;      // opcional
-    public GameObject groundBackground;    // opcional
+    public CameraFollow cameraFollow;
+    public FastFallOnPit fastFallOnPit;
+    public GameObject hellBackground;
+    public GameObject groundBackground;
 
     [Header("Ajustes")]
     public float hellThresholdY = -4f;
@@ -39,14 +39,10 @@ public class PitYTrigger : MonoBehaviour
 
     private void EnterHell()
     {
-        // 1) ativa inferno imediatamente (para evitar gap visual)
         if (hellBackground) hellBackground.SetActive(true);
         if (groundBackground) groundBackground.SetActive(false);
 
-        // 2) avisa a câmera (faz transição Y)
         if (cameraFollow != null) cameraFollow.SetInHell(true);
-
-        // 3) inicia queda rápida no player
         if (fastFallOnPit != null) fastFallOnPit.StartFastFall();
     }
 
@@ -56,5 +52,14 @@ public class PitYTrigger : MonoBehaviour
         if (groundBackground) groundBackground.SetActive(true);
 
         if (cameraFollow != null) cameraFollow.SetInHell(false);
+    }
+
+    // ---------- método adicional que você adicionou ----------
+    // Deve estar DENTRO da classe (entre as chaves acima).
+    public void ForceReturnToGround()
+    {
+        inHell = false;
+        if (hellBackground) hellBackground.SetActive(false);
+        if (groundBackground) groundBackground.SetActive(true);
     }
 }
