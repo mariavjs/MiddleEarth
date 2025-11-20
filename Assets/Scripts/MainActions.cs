@@ -5,6 +5,8 @@ public class MainMenu : MonoBehaviour
 {
     public void PlayGame()
     {
+        Time.timeScale = 1f;
+        AudioListener.pause = false;
         SceneManager.LoadScene(1); //cena jogo
     }
 

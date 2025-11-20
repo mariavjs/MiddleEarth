@@ -143,36 +143,31 @@ public class Player : MonoBehaviour
         if (isDead) return;
         isDead = true;
 
-        if (deathSound != null && audioSource != null)
-            audioSource.PlayOneShot(deathSound);
+        // if (deathSound != null && audioSource != null)
+        //     audioSource.PlayOneShot(deathSound);
 
-        if (animator != null && HasAnimatorParam("Die")) animator.SetTrigger("Die");
+        // desativa o comportamento do player
+        this.enabled = false;
 
-        // reforça constraint X (mantém X travado) e aumenta gravidade para cair rápido
-        rb.constraints = RigidbodyConstraints2D.FreezePositionX | RigidbodyConstraints2D.FreezeRotation;
-        rb.gravityScale = Mathf.Max(rb.gravityScale, 4f);
+        // opcional: animação de morte já disparada antes (ex: animator.SetTrigger("Die"); )
 
-        // opcional: desabilitar colisões que impedem a queda:
-        // var col = GetComponent<Collider2D>(); if (col != null) col.isTrigger = true;
+        // Informar GameManager e abrir Game Over (GameManager pode salvar highscore, etc)
+        if (GameManager.Instance != null)
+        {
+            GameManager.Instance.OnPlayerDeath();
+        }
 
-        // desabilita controles (mas não destrói para permitir animação/queda)
-        // this.enabled = false;
-    }
+        // Mostrar painel de Game Over (vai pausar o jogo)
+        if (GameOverManager.Instance != null)
+        {
+            GameOverManager.Instance.ShowGameOver();
+        }
 
-    public void Die()
-    {
-        if (isDead) return;
-        isDead = true;
-
-        if (deathSound != null && audioSource != null)
-            audioSource.PlayOneShot(deathSound);
-
-        if (animator != null && HasAnimatorParam("Die")) animator.SetTrigger("Die");
-
-        // destrói e pausa (se quer manter o jogo rodando, remova Time.timeScale)
+        // destrói o objeto visual depois de um tempo, se desejar
         Destroy(gameObject, 0.5f);
-        Time.timeScale = 0f;
+        // não setamos Time.timeScale = 0f aqui — o GameOverManager cuida disso
     }
+
 
     // Atualiza as imagens de coração e (opcional) texto
     private void UpdateLivesUI()
