@@ -111,11 +111,12 @@ public class GameManager : MonoBehaviour
     }
 
     // chamado pelo Player quando morrer (opcional)
-    public void OnPlayerDeath()
-    {
-        SaveHighScoreIfNeeded();
-        // abrir painel de Game Over, etc.
-    }
+public void OnPlayerDeath()
+{
+    SaveHighScoreIfNeeded();
+    if (GameOverManager.Instance != null)
+        GameOverManager.Instance.ShowGameOver();
+}
 
     private void LoadHighScore()
     {
