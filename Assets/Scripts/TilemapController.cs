@@ -2,7 +2,8 @@ using UnityEngine;
 
 public class TilemapController : MonoBehaviour
 {
-    private bool hasTriggered = false; // Cada tile só spawna uma vez
+    private bool hasTriggeredSpawn = false; // Cada tile só spawna uma vez
+    private bool hasTriggeredDestroy = false; // Cada tile só se destrói uma vez
 
     void Update()
     {
@@ -13,17 +14,10 @@ public class TilemapController : MonoBehaviour
     {
         Debug.Log("[TilemapController] OnTriggerEnter2D: colidiu com " + other.name + " tag=" + other.tag);
         
-        // Verifica se já spawnou e se tem a tag correta
-        if (hasTriggered)
+        // Detecta colisão com TriggerSpawn (tag = "Box") para spawnar próximo tile
+        if (other.CompareTag("Box") && !hasTriggeredSpawn)
         {
-            Debug.Log("[TilemapController] Este tile já spawnou um próximo, ignorando.");
-            return;
-        }
-        
-        // atravessou o gatilho (GameObject "TriggerSpawn" com Tag = "Box")
-        if (other.CompareTag("Box"))
-        {
-            hasTriggered = true; // Marca que este tile já spawnou
+            hasTriggeredSpawn = true;
             
             var spawner = FindObjectOfType<GroundSpawner>();
             if (spawner)
@@ -33,6 +27,22 @@ public class TilemapController : MonoBehaviour
             else
             {
                 Debug.LogError("[TilemapController] GroundSpawner não encontrado na cena.");
+            }
+        }
+        
+        // Detecta colisão com DestroySpawn (tag = "Destroy") para destruir este tile
+        if (other.CompareTag("Destroy") && !hasTriggeredDestroy)
+        {
+            hasTriggeredDestroy = true;
+            
+            var spawner = FindObjectOfType<GroundSpawner>();
+            if (spawner)
+            {
+                spawner.DestroyTile(this.gameObject);
+            }
+            else
+            {
+                Debug.LogError("[TilemapController] GroundSpawner não encontrado para destruir tile.");
             }
         }
     }
