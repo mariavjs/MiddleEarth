@@ -126,8 +126,8 @@ public class Player : MonoBehaviour
         if (isDead) return;
         isDead = true;
 
-        if (deathSound != null && audioSource != null)
-            audioSource.PlayOneShot(deathSound);
+        // if (deathSound != null && audioSource != null)
+        //     audioSource.PlayOneShot(deathSound);
 
         // desativa o comportamento do player
         this.enabled = false;
