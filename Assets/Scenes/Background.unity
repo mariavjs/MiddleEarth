@@ -155,7 +155,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 836.2001, y: 569.9999}
+  m_AnchoredPosition: {x: 881, y: 521}
   m_SizeDelta: {x: 130, y: 130}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &17652731
@@ -476,15 +476,15 @@ MonoBehaviour:
       m_Calls: []
   m_text: MENU
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
-  m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 9a48c09bc204ef047a5ebaf15fad0dd9, type: 2}
+  m_sharedMaterial: {fileID: 4240664355906646251, guid: 9a48c09bc204ef047a5ebaf15fad0dd9, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4281874488
-  m_fontColor: {r: 0.21960786, g: 0.21960786, b: 0.21960786, a: 1}
+    rgba: 4294704125
+  m_fontColor: {r: 0.990566, g: 0.98589355, b: 0.98589355, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:
@@ -767,7 +767,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &324853688
 RectTransform:
   m_ObjectHideFlags: 0
@@ -941,8 +941,8 @@ MonoBehaviour:
       m_Calls: []
   m_text: 'Max Score: 0'
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
-  m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 9a48c09bc204ef047a5ebaf15fad0dd9, type: 2}
+  m_sharedMaterial: {fileID: 4240664355906646251, guid: 9a48c09bc204ef047a5ebaf15fad0dd9, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -1415,7 +1415,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 747.36, y: 367}
+  m_AnchoredPosition: {x: -705, y: 314}
   m_SizeDelta: {x: 425.28, y: 71.244}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &706769614
@@ -1503,7 +1503,7 @@ MonoBehaviour:
   m_VertexBufferAutoSizeReduction: 0
   m_useMaxVisibleDescender: 1
   m_pageToDisplay: 1
-  m_margin: {x: -1.0597267, y: 0.00006866455, z: 3.2709656, w: -0.32215884}
+  m_margin: {x: -1.0597267, y: 0.00006866455, z: -97.12549, w: -0.32215884}
   m_isUsingLegacyAnimationComponent: 0
   m_isVolumetricText: 0
   m_hasFontAssetChanged: 0
@@ -1576,8 +1576,8 @@ MonoBehaviour:
       m_Calls: []
   m_text: GAME OVER!!
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
-  m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 9a48c09bc204ef047a5ebaf15fad0dd9, type: 2}
+  m_sharedMaterial: {fileID: 4240664355906646251, guid: 9a48c09bc204ef047a5ebaf15fad0dd9, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -2482,7 +2482,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 708, y: 415}
+  m_AnchoredPosition: {x: -743, y: 373}
   m_SizeDelta: {x: 348.819, y: 149.694}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1114252168
@@ -2624,8 +2624,8 @@ MonoBehaviour:
       m_Calls: []
   m_text: 'Total Coins: 0'
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
-  m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 9a48c09bc204ef047a5ebaf15fad0dd9, type: 2}
+  m_sharedMaterial: {fileID: 4240664355906646251, guid: 9a48c09bc204ef047a5ebaf15fad0dd9, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -3324,15 +3324,15 @@ MonoBehaviour:
       m_Calls: []
   m_text: SHOP
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
-  m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 9a48c09bc204ef047a5ebaf15fad0dd9, type: 2}
+  m_sharedMaterial: {fileID: 4240664355906646251, guid: 9a48c09bc204ef047a5ebaf15fad0dd9, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4281874488
-  m_fontColor: {r: 0.21960786, g: 0.21960786, b: 0.21960786, a: 1}
+    rgba: 4294835710
+  m_fontColor: {r: 0.995283, g: 0.99058825, b: 0.99058825, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:
@@ -3438,7 +3438,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 265, y: -74}
+  m_AnchoredPosition: {x: 253, y: -74}
   m_SizeDelta: {x: 100, y: -19.94049}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1478057586
@@ -3640,8 +3640,8 @@ MonoBehaviour:
       m_Calls: []
   m_text: 'Run Score: 0'
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
-  m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 9a48c09bc204ef047a5ebaf15fad0dd9, type: 2}
+  m_sharedMaterial: {fileID: 4240664355906646251, guid: 9a48c09bc204ef047a5ebaf15fad0dd9, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -4203,7 +4203,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   speed: 5
   acceleration: 0.1
-  jumpHeight: 14
+  jumpHeight: 16
   hitSound: {fileID: 8300000, guid: 41912609f16a1bc4da4b779f172be2af, type: 3}
   deathSound: {fileID: 8300000, guid: 76ace7d91d3b702418e26b8d27ea2afb, type: 3}
   startingLives: 3
@@ -4297,7 +4297,7 @@ Rigidbody2D:
   m_Mass: 1
   m_LinearDamping: 0
   m_AngularDamping: 0.05
-  m_GravityScale: 3.5
+  m_GravityScale: 4
   m_Material: {fileID: 0}
   m_IncludeLayers:
     serializedVersion: 2
@@ -4906,8 +4906,8 @@ MonoBehaviour:
       m_Calls: []
   m_text: '+Coins: 0'
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
-  m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 9a48c09bc204ef047a5ebaf15fad0dd9, type: 2}
+  m_sharedMaterial: {fileID: 4240664355906646251, guid: 9a48c09bc204ef047a5ebaf15fad0dd9, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
