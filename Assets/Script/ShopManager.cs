@@ -30,27 +30,27 @@ public class ShopManager : MonoBehaviour
         if (buyInfernoButton != null) buyInfernoButton.onClick.AddListener(OnBuyInferno);
         if (backToMenuButton != null) backToMenuButton.onClick.AddListener(OnBackToMainMenu);
 
-        if (lifePriceText != null) lifePriceText.text = priceLife + "c";
-        if (infernoPriceText != null) infernoPriceText.text = priceInferno + "c";
+        // ❌ Removido: linhas que alteravam textos dos botões ou preços
+        // if (lifePriceText != null) lifePriceText.text = priceLife + "c";
+        // if (infernoPriceText != null) infernoPriceText.text = priceInferno + "c";
 
-        // garante que InfernoConfig carregou
         InfernoConfig.Load();
-
         UpdateUI();
     }
 
     void Update()
     {
-        // atualiza moedas e botões em tempo real
         UpdateUI();
     }
 
     void UpdateUI()
     {
         int coins = GetTotalCoins();
-        if (playerCoinsText != null) playerCoinsText.text = "Coins: " + coins;
-        if (infernoDurationText != null) infernoDurationText.text = "Inferno: " + Mathf.FloorToInt(InfernoConfig.InfernoDurationSeconds) + "s";
+        if (playerCoinsText != null) playerCoinsText.text = coins.ToString();
+        if (infernoDurationText != null)
+            infernoDurationText.text = "Inferno: " + Mathf.FloorToInt(InfernoConfig.InfernoDurationSeconds) + "s";
 
+        // ✅ Mantém apenas a lógica de habilitar/desabilitar botões
         if (buyLifeButton != null) buyLifeButton.interactable = (coins >= priceLife);
         if (buyInfernoButton != null) buyInfernoButton.interactable = (coins >= priceInferno);
     }
@@ -63,7 +63,6 @@ public class ShopManager : MonoBehaviour
             return;
         }
 
-        // aplica vida via GameManager.player
         if (GameManager.Instance != null && GameManager.Instance.player != null)
         {
             int added = GameManager.Instance.player.AddLife(1);
@@ -71,7 +70,7 @@ public class ShopManager : MonoBehaviour
         }
         else
         {
-            Debug.LogWarning("[ShopManager] GameManager.player não encontrado. Vida comprada mas não aplicada ao player.");
+            Debug.LogWarning("[ShopManager] GameManager.player não encontrado.");
         }
 
         UpdateUI();
@@ -92,18 +91,15 @@ public class ShopManager : MonoBehaviour
 
     public void OnBackToMainMenu()
     {
-        // troca direto para o menu principal
         if (!string.IsNullOrEmpty(mainMenuSceneName))
             SceneManager.LoadScene(mainMenuSceneName);
         else
             SceneManager.LoadScene(mainMenuIndexFallback);
     }
 
-    // ------------ moedas (usa CoinManager se disponível) ------------
     int GetTotalCoins()
     {
         if (CoinManager.Instance != null) return CoinManager.Instance.GetTotalCoins();
-        // fallback PlayerPrefs
         return PlayerPrefs.GetInt("PLAYER_COINS", PlayerPrefs.GetInt("TotalCoins", 0));
     }
 
