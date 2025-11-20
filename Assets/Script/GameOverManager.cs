@@ -113,6 +113,7 @@ public class GameOverManager : MonoBehaviour
 
     public void OnMainMenu()
     {
+        Debug.Log("[GameOverManager] OnMainMenu called");
         StartCoroutine(LoadSceneAfterSfx_Coroutine(mainMenuSceneName, mainMenuSceneIndexFallback));
     }
 
