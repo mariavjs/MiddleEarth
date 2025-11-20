@@ -2,6 +2,8 @@ using UnityEngine;
 using UnityEngine.UI;    // <- necessário para Image
 using TMPro;
 
+[RequireComponent(typeof(Rigidbody2D))]
+[RequireComponent(typeof(AudioSource))]
 public class Player : MonoBehaviour
 {
     [Header("Movimento")]
@@ -19,37 +21,41 @@ public class Player : MonoBehaviour
 
     [Tooltip("Quantas vidas o jogador começa tendo (ex: 3).")]
     public int startingLives = 3;   // quantidade inicial (padrão 3)
+    [HideInInspector]
     public int currentLives;       // vidas atuais em tempo de execução
 
     [Header("UI - Hearts (imagens)")]
     public Image[] heartImages;    // arraste as imagens Heart1..HeartN aqui (em ordem)
     public TextMeshProUGUI livesText; // opcional: mostra número além dos corações
 
+    [Header("Tags / Layers")]
+    [Tooltip("Se quiser que o player responda diretamente a um trigger com tag Hell, configure aqui.")]
+    public string hellTag = "Hell"; // opcional: configure a tag do HellCollider se for usar OnTriggerEnter2D no Player
+
     private bool isDead = false;
+
+    void Awake()
+    {
+        rb = GetComponent<Rigidbody2D>();
+        audioSource = GetComponent<AudioSource>();
+
+        // força travar X e permitir Y (garante que o player não ande horizontalmente)
+        rb.constraints = RigidbodyConstraints2D.FreezePositionX | RigidbodyConstraints2D.FreezeRotation;
+    }
 
     void Start()
     {
-        rb = GetComponent<Rigidbody2D>();
         animator = GetComponent<Animator>();
 
-
-        audioSource = GetComponent<AudioSource>();
         if (audioSource == null)
             Debug.LogWarning($"[{name}] AudioSource não encontrado no Player. Adicione um AudioSource.");
 
         // garante que o número inicial de vidas esteja dentro do que podemos exibir
         int maxDisplayable = (heartImages != null) ? heartImages.Length : 0;
         if (maxDisplayable <= 0)
-        {
-            // se não houver imagens, usamos startingLives diretamente
             currentLives = Mathf.Max(0, startingLives);
-        }
         else
-        {
-            // se houver N corações na UI, começa com min(startingLives, N)
             currentLives = Mathf.Clamp(startingLives, 0, maxDisplayable);
-        }
-
 
         UpdateLivesUI();
     }
@@ -58,34 +64,39 @@ public class Player : MonoBehaviour
     {
         if (isDead) return;
 
-        // speed += acceleration * Time.deltaTime;
-
+        // Entrada: pulo
         if (Input.GetKeyDown(KeyCode.Space) && canJump)
         {
             Jump();
-            if (animator != null) animator.SetBool("Jump", true);
+            if (animator != null && HasAnimatorParam("Jump")) animator.SetBool("Jump", true);
             canJump = false;
         }
 
-
+        // debug som
         if (Input.GetKeyDown(KeyCode.K))
         {
             if (audioSource != null && hitSound != null) audioSource.PlayOneShot(hitSound);
         }
 
-        if (transform.position.y < -10f)
+        // se cair mto baixo, dá dano (fallback)
+        if (transform.position.y < -50f)
         {
+            // valor arbitrário — ajuste ou remova
             TakeDamage(1);
         }
+
+        // animação Run (se existir)
+        if (animator != null && HasAnimatorParam("Run"))
+            animator.SetBool("Run", true);
     }
 
     void Jump()
     {
         if (rb == null) return;
-        Vector2 v = rb.linearVelocity;
-
+        Vector2 v = rb.linearVelocity;          // CORREÇÃO: usar rb.velocity
         v.y = jumpHeight;
         rb.linearVelocity = v;
+        if (animator != null && HasAnimatorParam("Jump")) animator.SetBool("Jump", true);
     }
 
     void OnCollisionEnter2D(Collision2D collision)
@@ -93,7 +104,17 @@ public class Player : MonoBehaviour
         if (collision.gameObject.CompareTag("Ground"))
         {
             canJump = true;
-            if (animator != null) animator.SetBool("Jump", false);
+            if (animator != null && HasAnimatorParam("Jump")) animator.SetBool("Jump", false);
+        }
+    }
+
+    // Opção: se preferir detectar o HellCollider diretamente no Player
+    void OnTriggerEnter2D(Collider2D other)
+    {
+        if (string.IsNullOrEmpty(hellTag)) return;
+        if (other.CompareTag(hellTag))
+        {
+            DieAndFall();
         }
     }
 
@@ -105,20 +126,37 @@ public class Player : MonoBehaviour
         currentLives = Mathf.Max(0, currentLives - amount);
         UpdateLivesUI();
 
-
         if (hitSound != null && audioSource != null)
-
             audioSource.PlayOneShot(hitSound);
 
-
         if (currentLives <= 0)
-        {
             Die();
-        }
         else
         {
-            if (animator != null) animator.SetTrigger("Hurt");
+            if (animator != null && HasAnimatorParam("Hurt")) animator.SetTrigger("Hurt");
         }
+    }
+
+    // Método público para iniciar a "morte" e queda para o inferno (chamado pelo PitTrigger/HellTrigger)
+    public void DieAndFall()
+    {
+        if (isDead) return;
+        isDead = true;
+
+        if (deathSound != null && audioSource != null)
+            audioSource.PlayOneShot(deathSound);
+
+        if (animator != null && HasAnimatorParam("Die")) animator.SetTrigger("Die");
+
+        // reforça constraint X (mantém X travado) e aumenta gravidade para cair rápido
+        rb.constraints = RigidbodyConstraints2D.FreezePositionX | RigidbodyConstraints2D.FreezeRotation;
+        rb.gravityScale = Mathf.Max(rb.gravityScale, 4f);
+
+        // opcional: desabilitar colisões que impedem a queda:
+        // var col = GetComponent<Collider2D>(); if (col != null) col.isTrigger = true;
+
+        // desabilita controles (mas não destrói para permitir animação/queda)
+        // this.enabled = false;
     }
 
     public void Die()
@@ -126,15 +164,12 @@ public class Player : MonoBehaviour
         if (isDead) return;
         isDead = true;
 
-
         if (deathSound != null && audioSource != null)
-
             audioSource.PlayOneShot(deathSound);
 
+        if (animator != null && HasAnimatorParam("Die")) animator.SetTrigger("Die");
 
-        this.enabled = false;
-
-
+        // destrói e pausa (se quer manter o jogo rodando, remova Time.timeScale)
         Destroy(gameObject, 0.5f);
         Time.timeScale = 0f;
     }
@@ -142,51 +177,24 @@ public class Player : MonoBehaviour
     // Atualiza as imagens de coração e (opcional) texto
     private void UpdateLivesUI()
     {
-        // 1) Se houver imagens (heartImages), ativa/desativa conforme currentLives
         if (heartImages != null && heartImages.Length > 0)
         {
             for (int i = 0; i < heartImages.Length; i++)
             {
-                // Exibe o coração se o índice for menor que currentLives
                 if (heartImages[i] != null)
                     heartImages[i].gameObject.SetActive(i < currentLives);
             }
         }
 
-        // 2) Se livesText estiver configurado, mantenha como fallback (opcional)
-        if (livesText != null)
-        {
-            livesText.text = "Lives: " + currentLives;
-        }
+        if (livesText != null) livesText.text = "Lives: " + currentLives;
     }
 
-    // Método para adicionar vidas (ex: comprar ou ganhar vida)
-    // Retorna quantas vidas realmente foram adicionadas
-    public int AddLife(int amount = 1)
+    // ---------- utilitários ----------
+    bool HasAnimatorParam(string param)
     {
-        if (isDead) return 0;
-
-        if (heartImages == null || heartImages.Length == 0)
-        {
-            currentLives += amount;
-            UpdateLivesUI();
-            return amount;
-        }
-
-        int prev = currentLives;
-        currentLives = Mathf.Clamp(currentLives + amount, 0, heartImages.Length);
-        UpdateLivesUI();
-        return currentLives - prev; // quantidade efetivamente adicionada
-    }
-
-    // Método para definir um novo startingLives (usado quando o jogador compra vidas extras no shop)
-    // OBS: se o player pode ter mais corações visíveis, você precisa adicionar imagens no UI e aumentar heartImages length.
-    public void SetStartingLives(int newStarting)
-    {
-        startingLives = newStarting;
-        // atualiza currentLives respeitando o máximo exibível
-        int maxDisplay = (heartImages != null) ? heartImages.Length : newStarting;
-        currentLives = Mathf.Clamp(startingLives, 0, maxDisplay);
-        UpdateLivesUI();
+        if (animator == null) return false;
+        foreach (var p in animator.parameters)
+            if (p.name == param) return true;
+        return false;
     }
 }
