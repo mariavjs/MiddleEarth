@@ -39,6 +39,8 @@ public class GameOverManager : MonoBehaviour
     {
         if (Instance == null) Instance = this;
         else Destroy(gameObject);
+        HideGameOver(); // garante que comece invisível
+
     }
 
     void Start()
@@ -84,6 +86,13 @@ public class GameOverManager : MonoBehaviour
         // restante do seu código (atualização de textos de score/coins deveria estar aqui, se não estiver já)
         if (gameOverPanel != null) gameOverPanel.SetActive(true);
     }
+
+    public void HideGameOver()
+    {
+        if (gameOverPanel != null)
+            gameOverPanel.SetActive(false);
+    }
+
 
     // verifica se ainda estamos no período em que o SFX deve tocar
     bool IsSfxStillPlayingRealtime()

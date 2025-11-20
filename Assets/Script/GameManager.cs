@@ -44,7 +44,11 @@ public class GameManager : MonoBehaviour
     {
         ResetStats();
         LoadHighScore();
+
+        if (GameOverManager.Instance != null)
+            GameOverManager.Instance.HideGameOver(); // 🔧 reseta a UI
     }
+
 
     void Update()
     {
