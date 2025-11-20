@@ -58,7 +58,7 @@ public class Player : MonoBehaviour
     {
         if (isDead) return;
 
-        speed += acceleration * Time.deltaTime;
+        // speed += acceleration * Time.deltaTime;
 
         if (Input.GetKeyDown(KeyCode.Space) && canJump)
         {
