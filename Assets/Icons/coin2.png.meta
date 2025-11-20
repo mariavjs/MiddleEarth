@@ -1,19 +1,10 @@
 fileFormatVersion: 2
-guid: 5b367c2498c9e8c449a9ebf8205f64b9
+guid: cbae789557ff53041985da65facb1734
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: 2315992757609536657
-    second: DarkGoblin_idle_0
-  - first:
-      213: -1976710053810011344
-    second: DarkGoblin_idle_1
-  - first:
-      213: 1396081593089703759
-    second: DarkGoblin_idle_2
-  - first:
-      213: -5774502583953309678
-    second: DarkGoblin_idle_3
+      213: -8987809590498007947
+    second: coin2_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -55,12 +46,12 @@ TextureImporter:
   nPOTScale: 0
   lightmap: 0
   compressionQuality: 50
-  spriteMode: 2
+  spriteMode: 1
   spriteExtrude: 1
-  spriteMeshType: 1
+  spriteMeshType: 0
   alignment: 0
   spritePivot: {x: 0.5, y: 0.5}
-  spritePixelsToUnits: 70
+  spritePixelsToUnits: 100
   spriteBorder: {x: 0, y: 0, z: 0, w: 0}
   spriteGenerateFallbackPhysicsShape: 1
   alphaUsage: 1
@@ -122,13 +113,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: DarkGoblin_idle_0
+      name: coin2_0
       rect:
         serializedVersion: 2
-        x: 12
-        y: 0
+        x: 2
+        y: 1
         width: 29
-        height: 33
+        height: 29
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -137,74 +128,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 19c91b3742f042020800000000000000
-      internalID: 2315992757609536657
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: DarkGoblin_idle_1
-      rect:
-        serializedVersion: 2
-        x: 54
-        y: 0
-        width: 29
-        height: 34
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 03306badda05194e0800000000000000
-      internalID: -1976710053810011344
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: DarkGoblin_idle_2
-      rect:
-        serializedVersion: 2
-        x: 95
-        y: 0
-        width: 29
-        height: 34
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: f4fb299efc0ef5310800000000000000
-      internalID: 1396081593089703759
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: DarkGoblin_idle_3
-      rect:
-        serializedVersion: 2
-        x: 137
-        y: 0
-        width: 29
-        height: 33
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 21043e89e78dcdfa0800000000000000
-      internalID: -5774502583953309678
+      spriteID: 57464810cc2e44380800000000000000
+      internalID: -8987809590498007947
       vertices: []
       indices: 
       edges: []
@@ -213,7 +138,7 @@ TextureImporter:
     customData: 
     physicsShape: []
     bones: []
-    spriteID: 
+    spriteID: 5e97eb03825dee720800000000000000
     internalID: 0
     vertices: []
     indices: 
@@ -223,10 +148,7 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      DarkGoblin_idle_0: 2315992757609536657
-      DarkGoblin_idle_1: -1976710053810011344
-      DarkGoblin_idle_2: 1396081593089703759
-      DarkGoblin_idle_3: -5774502583953309678
+      coin2_0: -8987809590498007947
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
