@@ -29,6 +29,13 @@ public class MoveLeft : MonoBehaviour
 
         // aplica multiplicador local e move para a esquerda
         float finalSpeed = worldSpeed * speedMultiplier;
+        
+        // DEBUG: Log a cada 60 frames (~1 segundo)
+        if (Time.frameCount % 60 == 0)
+        {
+            Debug.Log($"[MoveLeft] {gameObject.name} - baseSpeed: {baseSpeed}, worldSpeed: {worldSpeed}, multiplier: {speedMultiplier}, finalSpeed: {finalSpeed}");
+        }
+        
         transform.Translate(Vector2.left * finalSpeed * Time.deltaTime);
     }
 }
