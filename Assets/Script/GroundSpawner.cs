@@ -74,6 +74,19 @@ public class GroundSpawner : MonoBehaviour
 
         isSpawning = false;
     }
+
+    public void DestroyTile(GameObject tile)
+    {
+        if (tile != null)
+        {
+            Debug.Log($"[GroundSpawner] Destruindo tile: {tile.name}");
+            Destroy(tile);
+        }
+        else
+        {
+            Debug.LogWarning("[GroundSpawner] Tentativa de destruir um tile nulo.");
+        }
+    }
 }
 
 
