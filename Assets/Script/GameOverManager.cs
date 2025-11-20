@@ -123,6 +123,8 @@ public class GameOverManager : MonoBehaviour
     public void OnMainMenu()
     {
         Debug.Log("[GameOverManager] OnMainMenu called");
+        Time.timeScale = 1f;
+        AudioListener.pause = false;
         SceneManager.LoadScene("MainMenu"); // ou pelo índice 2
     }
 
