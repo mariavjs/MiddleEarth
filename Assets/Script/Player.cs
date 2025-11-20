@@ -22,31 +22,53 @@ public class Player : MonoBehaviour
 
     private bool isDead = false;
 
+    [Header("Fixar na tela")]
+    [Tooltip("Posição em viewport onde o player ficará (x: 0..1, y usado só para referência)")]
+    public Vector2 viewportPos = new Vector2(0.25f, 0.5f);
+    private Camera mainCam;
+    private float camToPlayerDistance = 10f;
+
     void Start()
     {
         rb = GetComponent<Rigidbody2D>();
         animator = GetComponent<Animator>();
 
-        // <-- A linha que faltava: pega o AudioSource anexado ao Player
+        // Recomendo: Freeze Rotation apenas, controle X via MovePosition no FixedUpdate
+        if (rb != null)
+            rb.constraints = RigidbodyConstraints2D.FreezeRotation;
+
         audioSource = GetComponent<AudioSource>();
         if (audioSource == null)
             Debug.LogWarning($"[{name}] AudioSource não encontrado no Player. Adicione um AudioSource ao GameObject.");
 
         currentLives = maxLives;
         UpdateLivesUI();
+
+        mainCam = Camera.main;
+        if (mainCam != null)
+        {
+            // distância entre câmera e o plano do player (normalmente cam.z = -10, player.z = 0 => 10)
+            camToPlayerDistance = Mathf.Abs(mainCam.transform.position.z - transform.position.z);
+        }
     }
 
     void Update()
     {
         if (isDead) return;
 
-        speed += acceleration * Time.deltaTime;
+        // speed += acceleration * Time.deltaTime; // removido, se não usar movimento horizontal
 
         if (Input.GetKeyDown(KeyCode.Space) && canJump)
         {
             Jump();
             if (animator != null) animator.SetBool("Jump", true);
             canJump = false;
+        }
+
+        // força animação de corrida (para parecer que corre parado)
+        if (animator != null)
+        {
+            animator.SetBool("Run", true);
         }
 
         // teste rápido: tocar som manualmente com K (útil pra debug)
@@ -61,11 +83,27 @@ public class Player : MonoBehaviour
         }
     }
 
+    // Usamos FixedUpdate para posicionar X via MovePosition (compatível com física)
+    void FixedUpdate()
+    {
+        if (rb == null || mainCam == null) return;
+
+        // calcula o X em world correspondente ao viewportPos.x
+        Vector3 vp = new Vector3(viewportPos.x, viewportPos.y, camToPlayerDistance);
+        Vector3 worldPoint = mainCam.ViewportToWorldPoint(vp);
+
+        // mantemos a Y física (rb.position.y) e z original
+        Vector2 target = new Vector2(worldPoint.x, rb.position.y);
+
+        // MovePosition respeita a física e é suave em FixedUpdate
+        rb.MovePosition(target);
+    }
+
     void Jump()
     {
         if (rb == null) return;
 
-        Vector2 v = rb.linearVelocity; // uso correto
+        Vector2 v = rb.linearVelocity;
         v.y = jumpHeight;
         rb.linearVelocity = v;
     }
@@ -107,15 +145,12 @@ public class Player : MonoBehaviour
         if (isDead) return;
         isDead = true;
 
-        // toca som de morte (toca e esperamos antes de destruir)
         if (deathSound != null && audioSource != null)
         {
             audioSource.PlayOneShot(deathSound);
         }
 
         this.enabled = false;
-
-        // espera um tempo curto pra som tocar e então destrói (0.5s é um bom começo)
         Destroy(gameObject, 0.5f);
         Time.timeScale = 0f;
     }
