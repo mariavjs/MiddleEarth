@@ -25,8 +25,8 @@ public class GameOverManager : MonoBehaviour
     public int shopSceneIndexFallback = 2;
 
     // runtime
-    private int coinsThisRun = 0;
-    private float finalDistance = 0f;
+    // private int coinsThisRun = 0;
+    // private float finalDistance = 0f;
 
     // fields (áudio)
     public AudioClip deathClip;             // arraste o clip de morte no inspector
@@ -114,12 +114,12 @@ public class GameOverManager : MonoBehaviour
     public void OnMainMenu()
     {
         Debug.Log("[GameOverManager] OnMainMenu called");
-        StartCoroutine(LoadSceneAfterSfx_Coroutine(mainMenuSceneName, mainMenuSceneIndexFallback));
+        SceneManager.LoadScene("MainMenu"); // ou pelo índice 2
     }
 
     public void OnShop()
     {
-        StartCoroutine(LoadSceneAfterSfx_Coroutine(shopSceneName, shopSceneIndexFallback));
+        SceneManager.LoadScene("Shop"); // ou pelo índice 2
     }
 
     public void OnRestart()
