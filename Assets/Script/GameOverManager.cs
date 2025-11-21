@@ -8,39 +8,41 @@ public class GameOverManager : MonoBehaviour
 {
     public static GameOverManager Instance;
 
-    [Header("Refs - UI")]
-    public GameObject gameOverPanel;            // painel root (desativa por padrão)
-    public TextMeshProUGUI scoreText;           // "Score: 123 m"
-    public TextMeshProUGUI recordText;          // "Record: 456 m"
-    public TextMeshProUGUI coinsThisRunText;    // "Coins: 10"
-    public TextMeshProUGUI coinsTotalText;      // "Total Coins: 100"
-    public Button mainMenuButton;               // botão voltar ao menu principal
-    public Button shopButton;                   // botão ir ao shop
-    public Button restartButton;                // (opcional) botão reiniciar partida
+    [Header("UI Refs")]
+    public GameObject gameOverPanel;
+    public TextMeshProUGUI scoreText;
+    public TextMeshProUGUI recordText;
+    public TextMeshProUGUI coinsThisRunText;
+    public TextMeshProUGUI coinsTotalText;
+    public Button mainMenuButton;
+    public Button shopButton;
+    public Button restartButton;
 
-    [Header("Scene names / indices")]
+    [Header("Scenes")]
     public string mainMenuSceneName = "MainMenu";
     public string shopSceneName = "Shop";
-    public int mainMenuSceneIndexFallback = 0;
-    public int shopSceneIndexFallback = 2;
 
-    // runtime
-    // private int coinsThisRun = 0;
-    // private float finalDistance = 0f;
-
-    // fields (áudio)
-    public AudioClip deathClip;             // arraste o clip de morte no inspector
-    public AudioSource sfxSource;           // opcional: arraste um AudioSource (em GameOverManager) ou deixe null
-
-    // controla até quando o SFX deve tocar (tempo real)
+    [Header("Audio")]
+    public AudioClip deathClip;
+    public AudioSource sfxSource;
     private float sfxEndRealtime = 0f;
 
     void Awake()
     {
         if (Instance == null) Instance = this;
         else Destroy(gameObject);
-        HideGameOver(); // garante que comece invisível
 
+        if (gameOverPanel == null)
+        {
+            GameObject found = FindGameObjectInSceneIncludingInactive("GameOverPanel") ?? FindGameObjectInSceneIncludingInactive("GameOver");
+            if (found != null)
+            {
+                gameOverPanel = found;
+                Debug.Log($"[GameOverManager] gameOverPanel auto-atribuído: {found.name}");
+            }
+        }
+
+        HideGameOver();
     }
 
     void Start()
@@ -52,29 +54,114 @@ public class GameOverManager : MonoBehaviour
         if (restartButton != null) restartButton.onClick.AddListener(OnRestart);
     }
 
-// substitua a implementação atual de ShowGameOver() por esta
+    public void ShowGameOverSnapshot(float runDistance, int sessionCoins, int totalCoins, float elapsedTime)
+    {
+        if (scoreText != null)
+            scoreText.text = $"Run Score: {Mathf.FloorToInt(runDistance)} m";
+
+        if (recordText != null)
+        {
+            float highScore = PlayerPrefs.GetFloat("HighScoreDistance", 0f);
+            if (GameManager.Instance != null)
+                highScore = GameManager.Instance.GetHighScore();
+            recordText.text = "Max Score: " + Mathf.FloorToInt(highScore) + " m";
+        }
+
+        if (coinsThisRunText != null)
+            coinsThisRunText.text = $"+Coins: {sessionCoins}";
+
+        if (coinsTotalText != null)
+            coinsTotalText.text = $"Total Coins: {totalCoins}";
+
+        Time.timeScale = 0f;
+
+        if (deathClip != null)
+        {
+            if (sfxSource != null)
+                sfxSource.PlayOneShot(deathClip);
+            else
+                AudioSource.PlayClipAtPoint(deathClip, Camera.main?.transform.position ?? Vector3.zero);
+
+            sfxEndRealtime = Time.realtimeSinceStartup + deathClip.length;
+        }
+        else sfxEndRealtime = Time.realtimeSinceStartup;
+
+        if (gameOverPanel != null) gameOverPanel.SetActive(true);
+        else Debug.LogWarning("[GameOverManager] gameOverPanel é NULL.");
+    }
+
+    public void HideGameOver()
+    {
+        if (gameOverPanel != null)
+            gameOverPanel.SetActive(false);
+    }
+
+    public void OnMainMenu()
+    {
+        Time.timeScale = 1f;
+        AudioListener.pause = false;
+        SceneManager.LoadScene(mainMenuSceneName);
+    }
+
+    public void OnShop()
+    {
+        SceneManager.LoadScene(shopSceneName);
+    }
+
+    public void OnRestart()
+    {
+        StartCoroutine(RestartAfterSfxCoroutine());
+    }
+
+    IEnumerator RestartAfterSfxCoroutine()
+    {
+        while (Time.realtimeSinceStartup < sfxEndRealtime)
+            yield return null;
+
+        Time.timeScale = 1f;
+        AudioListener.pause = false;
+        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+    }
+
+    GameObject FindGameObjectInSceneIncludingInactive(string name)
+    {
+        var roots = SceneManager.GetActiveScene().GetRootGameObjects();
+        foreach (var root in roots)
+        {
+            var t = RecursiveFind(root.transform, name);
+            if (t != null) return t.gameObject;
+        }
+        return null;
+    }
+
+    Transform RecursiveFind(Transform parent, string name)
+    {
+        if (parent.name == name) return parent;
+        for (int i = 0; i < parent.childCount; i++)
+        {
+            var found = RecursiveFind(parent.GetChild(i), name);
+            if (found != null) return found;
+        }
+        return null;
+    }
+
+    // Compat: método legacy que outros scripts podem chamar
+// Ele usa a implementação atual por baixo: atualiza os textos e usa o snapshot flow atual.
 public void ShowGameOver()
 {
+    // se já há painel ativo, nada a fazer
     if (gameOverPanel != null && gameOverPanel.activeSelf) return;
 
-    // --- atualizar valores antes de pausar para garantir que rodem dependências ---
+    // atualiza os textos lendo as fontes (GameManager/CoinManager)
     UpdateGameOverTexts();
 
-    // pausa o jogo (física / updates dependentes de Time.timeScale)
+    // pausa, toca sfx e mostra (mesma lógica do snapshot)
     Time.timeScale = 0f;
 
-    // Tocar o SFX de morte e registrar quando ele termina (em tempo real)
     if (deathClip != null)
     {
-        if (sfxSource != null)
-        {
-            sfxSource.PlayOneShot(deathClip);
-        }
-        else
-        {
-            Vector3 pos = Camera.main != null ? Camera.main.transform.position : Vector3.zero;
-            AudioSource.PlayClipAtPoint(deathClip, pos);
-        }
+        if (sfxSource != null) sfxSource.PlayOneShot(deathClip);
+        else AudioSource.PlayClipAtPoint(deathClip, Camera.main != null ? Camera.main.transform.position : Vector3.zero);
 
         sfxEndRealtime = Time.realtimeSinceStartup + deathClip.length;
     }
@@ -83,13 +170,13 @@ public void ShowGameOver()
         sfxEndRealtime = Time.realtimeSinceStartup;
     }
 
-    // finalmente mostra o painel
     if (gameOverPanel != null) gameOverPanel.SetActive(true);
+    else Debug.LogWarning("[GameOverManager] ShowGameOver chamado mas gameOverPanel é NULL.");
 }
 
+// Atualiza textos lendo diretamente das fontes (compatibilidade)
 private void UpdateGameOverTexts()
 {
-    // DISTANCE / SCORE
     float runDistance = 0f;
     float best = 0f;
     if (GameManager.Instance != null)
@@ -97,13 +184,10 @@ private void UpdateGameOverTexts()
         runDistance = GameManager.Instance.GetDistance();
         best = GameManager.Instance.GetHighScore();
     }
-    // formata: "Run Score: 123 m" e "Max Score: 456 m"
-    if (scoreText != null)
-        scoreText.text = "Run Score: " + Mathf.FloorToInt(runDistance) + " m";
-    if (recordText != null)
-        recordText.text = "Max Score: " + Mathf.FloorToInt(best) + " m";
 
-    // COINS: tenta CoinManager então PlayerPrefs fallback
+    if (scoreText != null) scoreText.text = "Run Score: " + Mathf.FloorToInt(runDistance) + " m";
+    if (recordText != null) recordText.text = "Max Score: " + Mathf.FloorToInt(best) + " m";
+
     int sessionCoins = 0;
     int totalCoins = 0;
     if (CoinManager.Instance != null)
@@ -113,82 +197,12 @@ private void UpdateGameOverTexts()
     }
     else
     {
-        // PlayerPrefs fallback (mantive mesma chave que usa CoinManager)
-        sessionCoins = PlayerPrefs.GetInt("PLAYER_COINS_SESSION", 0); // se você não usa essa chave, ignore
+        sessionCoins = PlayerPrefs.GetInt("PLAYER_COINS_SESSION", 0);
         totalCoins = PlayerPrefs.GetInt("PLAYER_COINS", 0);
     }
 
-    if (coinsThisRunText != null)
-        coinsThisRunText.text = "+Coins: " + sessionCoins;
-    if (coinsTotalText != null)
-        coinsTotalText.text = "Total Coins: " + totalCoins;
-
-    // (opcional) se você tiver outros campos no painel (runCoins / totalCoins) atualize-os também:
-    // <procure pelos nomes exatos na sua hierarchy e adicione referências públicas no script, se necessário>
+    if (coinsThisRunText != null) coinsThisRunText.text = "+Coins: " + sessionCoins;
+    if (coinsTotalText != null) coinsTotalText.text = "Total Coins: " + totalCoins;
 }
 
-
-    public void HideGameOver()
-    {
-        if (gameOverPanel != null)
-            gameOverPanel.SetActive(false);
-    }
-
-
-    // verifica se ainda estamos no período em que o SFX deve tocar
-    bool IsSfxStillPlayingRealtime()
-    {
-        return Time.realtimeSinceStartup < sfxEndRealtime - 0.0001f;
-    }
-
-    // Carregamento de cena: aguarda o SFX terminar antes de trocar
-    IEnumerator LoadSceneAfterSfx_Coroutine(string sceneName, int fallbackIndex)
-    {
-        // espera até que o SFX termine (em tempo real)
-        while (IsSfxStillPlayingRealtime())
-        {
-            yield return null; // continua checando em tempo real (Time.timeScale == 0 não afeta)
-        }
-
-        // restaura tempo e áudio global antes de trocar de cena
-        Time.timeScale = 1f;
-        AudioListener.pause = false;
-
-        // Faz o carregamento da cena
-        if (!string.IsNullOrEmpty(sceneName))
-            SceneManager.LoadScene(sceneName);
-        else
-            SceneManager.LoadScene(fallbackIndex);
-    }
-
-    public void OnMainMenu()
-    {
-        Debug.Log("[GameOverManager] OnMainMenu called");
-        Time.timeScale = 1f;
-        AudioListener.pause = false;
-        SceneManager.LoadScene("MainMenu"); // ou pelo índice 2
-    }
-
-    public void OnShop()
-    {
-        SceneManager.LoadScene("Shop"); // ou pelo índice 2
-    }
-
-    public void OnRestart()
-    {
-        // Restart também espera o SFX terminar
-        StartCoroutine(RestartAfterSfxCoroutine());
-    }
-
-    IEnumerator RestartAfterSfxCoroutine()
-    {
-        while (IsSfxStillPlayingRealtime())
-        {
-            yield return null;
-        }
-
-        Time.timeScale = 1f;
-        AudioListener.pause = false;
-        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
-    }
 }

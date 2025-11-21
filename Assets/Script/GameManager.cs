@@ -8,27 +8,25 @@ public class GameManager : MonoBehaviour
     public static GameManager Instance;
 
     [Header("Referências")]
-    public Player player;                  // arraste seu Player aqui (opcional)
-    public TextMeshProUGUI timeText;       // arraste TimeText (TMP)
-    public TextMeshProUGUI distanceText;   // arraste DistanceText (TMP)
+    public Player player;
+    public TextMeshProUGUI timeText;
+    public TextMeshProUGUI distanceText;
 
     [Header("Ajustes - velocidade / distância")]
-    public float baseSpeed = 5f;                 // velocidade inicial do mundo
-    public float maxSpeed = 25f;                 // teto da velocidade
-    [Tooltip("Se true, a velocidade cresce continuamente com a distância (linear).")]
+    public float baseSpeed = 5f;
+    public float maxSpeed = 25f;
     public bool continuousIncreaseWithDistance = false;
-    [Tooltip("Quanto a velocidade cresce por unidade de distância (apenas para continuousIncreaseWithDistance).")]
     public float speedPerMeter = 0.01f;
 
     [Header("Ajustes - aumento por passos (opcional)")]
-    public bool increaseSpeedWithDistance = false;   // comportamento legacy (se quer passos)
-    public float speedIncreaseDistance = 100f;       // a cada X metros aplica aumento por passo
-    public float speedIncreaseAmount = 0.5f;         // valor adicionado ao currentSpeed por passo (aditivo)
-    public bool useMultiplicativeIncrease = false;   // se true, multiplica por speedIncreaseMultiplier
-    public float speedIncreaseMultiplier = 1.05f;    // multiplicador por passo
+    public bool increaseSpeedWithDistance = false;
+    public float speedIncreaseDistance = 100f;
+    public float speedIncreaseAmount = 0.5f;
+    public bool useMultiplicativeIncrease = false;
+    public float speedIncreaseMultiplier = 1.05f;
 
     [Header("Debug / Interno")]
-    [SerializeField] private float currentSpeed = 0f;   // velocidade atual do mundo (exposta só pra debug)
+    [SerializeField] private float currentSpeed = 0f;
     private float elapsedTime = 0f;
     private float distance = 0f;
     private float nextSpeedIncreaseAt = 0f;
@@ -43,10 +41,7 @@ public class GameManager : MonoBehaviour
             DontDestroyOnLoad(gameObject);
             SceneManager.sceneLoaded += OnSceneLoaded;
         }
-        else
-        {
-            Destroy(gameObject);
-        }
+        else Destroy(gameObject);
     }
 
     void OnDestroy()
@@ -54,112 +49,21 @@ public class GameManager : MonoBehaviour
         SceneManager.sceneLoaded -= OnSceneLoaded;
     }
 
-    // chamado toda vez que uma cena é carregada
-private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
-{
-    // garante que o jogo não fique pausado por herança
-    Time.timeScale = 1f;
-    AudioListener.pause = false;
-
-    // Se a sua cena de jogo se chama "Background" (como você disse), só reconecta lá
-    if (scene.name == "Background")
+    private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
-        ReconnectSceneReferences();
-        ResetStats();
-    }
+        Time.timeScale = 1f;
+        AudioListener.pause = false;
 
-    // debug rápido
-    PrintSceneDebugStatus();
-}
-
-private void ReconnectSceneReferences()
-{
-    // tenta encontrar o Player na nova cena
-    if (player == null)
-    {
-        player = FindObjectOfType<Player>();
-        if (player != null) Debug.Log("[GameManager] Player encontrado: " + player.name);
-    }
-
-    // tenta associar TimeText (tenta por nome - ajuste se o objeto tiver outro nome)
-    if (timeText == null)
-    {
-        GameObject timeGO = GameObject.Find("Time"); // ou "TimeText"
-        if (timeGO == null) timeGO = GameObject.Find("TimeText");
-        if (timeGO != null)
+        if (scene.name == "Background")
         {
-            timeText = timeGO.GetComponent<TextMeshProUGUI>();
-            Debug.Log("[GameManager] timeText reconectado: " + timeText.name);
-        }
-        else Debug.LogWarning("[GameManager] Não encontrou TimeText por nome.");
-    }
-
-    // distancia
-    if (distanceText == null)
-    {
-        GameObject distGO = GameObject.Find("Distance"); // ou "DistanceText"
-        if (distGO == null) distGO = GameObject.Find("DistanceText");
-        if (distGO != null)
-        {
-            distanceText = distGO.GetComponent<TextMeshProUGUI>();
-            Debug.Log("[GameManager] distanceText reconectado: " + distanceText.name);
-        }
-        else Debug.LogWarning("[GameManager] Não encontrou DistanceText por nome.");
-    }
-
-    // CoinManager: tenta encontrar a instância na cena atual
-    if (CoinManager.Instance == null)
-    {
-        CoinManager cm = FindObjectOfType<CoinManager>();
-        if (cm != null)
-        {
-            Debug.Log("[GameManager] CoinManager encontrado dinamicamente.");
-            // a instancia do CoinManager será atribuída pelo próprio Awake dele
-        }
-        else
-        {
-            Debug.LogWarning("[GameManager] CoinManager NÃO encontrado na cena!");
+            ReconnectSceneReferences();
+            ResetStats();
         }
     }
-
-    // Reatribui coinText no CoinManager caso esteja null e exista Text no Canvas
-    if (CoinManager.Instance != null && CoinManager.Instance.coinText == null)
-    {
-        // tenta localizar por nome (ajuste o nome do objeto de texto conforme sua hierarquia)
-        GameObject coinTextGO = GameObject.Find("CoinsPanel")?.transform.Find("CoinText")?.gameObject;
-        if (coinTextGO == null)
-        {
-            coinTextGO = GameObject.Find("CoinText");
-        }
-        if (coinTextGO != null)
-        {
-            var tmp = coinTextGO.GetComponent<TextMeshProUGUI>();
-            if (tmp != null)
-            {
-                CoinManager.Instance.coinText = tmp;
-                Debug.Log("[GameManager] atribuído coinText ao CoinManager: " + tmp.name);
-            }
-        }
-        else
-        {
-            Debug.LogWarning("[GameManager] coinText GameObject não encontrado (procure pelo nome correto).");
-        }
-    }
-
-    // garante que sessionCoins seja resetado no CoinManager quando nova partida começar
-    if (CoinManager.Instance != null)
-    {
-        CoinManager.Instance.ResetSessionCoins();
-    }
-}
-
 
     void Start()
     {
-        // carregamento do highscore apenas
         LoadHighScore();
-
-        // se a cena já estiver carregada antes do registro, chamamos a rotina de limpeza manual
         Time.timeScale = 1f;
         AudioListener.pause = false;
     }
@@ -168,40 +72,23 @@ private void ReconnectSceneReferences()
     {
         if (Time.timeScale <= 0f) return;
 
-        // tempo
         elapsedTime += Time.deltaTime;
-
-        // --- calcula a velocidade atual do mundo (currentSpeed) ---
-        // base
         currentSpeed = baseSpeed;
 
-        // se aumento contínuo com a distância estiver ligado:
         if (continuousIncreaseWithDistance)
-        {
             currentSpeed = baseSpeed + distance * speedPerMeter;
-        }
 
-        // limita pelo teto
         if (currentSpeed > maxSpeed) currentSpeed = maxSpeed;
 
-        // se ainda usar aumento por passos (legacy/alternativa), checa se atingimos o próximo checkpoint
         if (increaseSpeedWithDistance && distance >= nextSpeedIncreaseAt)
         {
             ApplyStepSpeedIncrease();
             nextSpeedIncreaseAt += speedIncreaseDistance;
         }
 
-        // garanta o teto após step increase
-        if (currentSpeed > maxSpeed) currentSpeed = maxSpeed;
+        distance += currentSpeed * Time.deltaTime;
 
-        // --- atualiza a distância com base na velocidade do mundo (o mundo move-se currentSpeed unidades/s) ---
-        distance += currentSpeed * Time.deltaTime * 1f; // distanceMultiplier se necessário pode ser aplicado aqui
-
-        // --- aplica a velocidade calculada ao player (single source of truth) ---
-        if (player != null)
-        {
-            player.speed = currentSpeed;
-        }
+        if (player != null) player.speed = currentSpeed;
 
         UpdateUI();
     }
@@ -216,8 +103,10 @@ private void ReconnectSceneReferences()
 
     void UpdateUI()
     {
-        if (timeText != null) timeText.text = "Time: " + FormatTime(elapsedTime);
-        if (distanceText != null) distanceText.text = "Distance: " + Mathf.FloorToInt(distance) + " m";
+        if (timeText != null)
+            timeText.text = "Time: " + FormatTime(elapsedTime);
+        if (distanceText != null)
+            distanceText.text = "Distance: " + Mathf.FloorToInt(distance) + " m";
     }
 
     string FormatTime(float seconds)
@@ -225,44 +114,84 @@ private void ReconnectSceneReferences()
         int mins = Mathf.FloorToInt(seconds / 60f);
         int secs = Mathf.FloorToInt(seconds % 60f);
         int tenths = Mathf.FloorToInt((seconds * 10f) % 10f);
-        return string.Format("{0:00}:{1:00}.{2}", mins, secs, tenths);
+        return $"{mins:00}:{secs:00}.{tenths}";
     }
 
-    // chamado pelo Player quando morrer (opcional)
-public void OnPlayerDeath()
-{
-    SaveHighScoreIfNeeded();
-    StartCoroutine(ShowGameOverDelayed());
-}
-
-private IEnumerator ShowGameOverDelayed()
-{
-    yield return new WaitForSecondsRealtime(0.2f);
-
-    // tenta reobter o GameOverManager se o Instance sumiu
-    if (GameOverManager.Instance == null)
+    public void OnPlayerDeath()
     {
-        var manager = FindObjectOfType<GameOverManager>();
-        if (manager != null)
+        float snapshotDistance = distance;
+        float snapshotElapsed = elapsedTime;
+        int snapshotSessionCoins = 0;
+        int snapshotTotalCoins = 0;
+
+        if (CoinManager.Instance != null)
         {
-            Debug.Log("[GameManager] GameOverManager encontrado dinamicamente.");
-            manager.ShowGameOver();
-            yield break;
+            snapshotSessionCoins = CoinManager.Instance.GetSessionCoins();
+            snapshotTotalCoins = CoinManager.Instance.GetTotalCoins();
         }
+        else
+        {
+            snapshotTotalCoins = PlayerPrefs.GetInt("PLAYER_COINS", 0);
+            snapshotSessionCoins = PlayerPrefs.GetInt("PLAYER_COINS_SESSION", 0);
+        }
+
+        StartCoroutine(ShowGameOverSnapshotEnsureCoroutine(snapshotDistance, snapshotSessionCoins, snapshotTotalCoins, snapshotElapsed));
     }
 
-    if (GameOverManager.Instance != null)
-        GameOverManager.Instance.ShowGameOver();
-    else
-        Debug.LogWarning("[GameManager] GameOverManager ainda não encontrado após a morte do jogador.");
-}
-
-
-    private void LoadHighScore()
+    private IEnumerator ShowGameOverSnapshotEnsureCoroutine(float snapshotDistance, int snapshotSessionCoins, int snapshotTotalCoins, float snapshotElapsed)
     {
-        // garante que a chave exista
-        float prev = PlayerPrefs.GetFloat(HIGH_SCORE_KEY, 0f);
+        SaveHighScoreIfNeeded();
+
+        float timeout = 2f;
+        float start = Time.realtimeSinceStartup;
+
+        if (GameOverManager.Instance != null && GameOverManager.Instance.gameOverPanel == null)
+        {
+            GameObject foundPanel = FindGameObjectInSceneIncludingInactive("GameOverPanel") ?? FindGameObjectInSceneIncludingInactive("GameOver");
+            if (foundPanel != null)
+            {
+                GameOverManager.Instance.gameOverPanel = foundPanel;
+                Debug.Log($"[GameManager] Atribuído gameOverPanel: {foundPanel.name}");
+            }
+        }
+
+        while (Time.realtimeSinceStartup - start < timeout)
+        {
+            if (GameOverManager.Instance != null && GameOverManager.Instance.gameOverPanel != null)
+            {
+                GameOverManager.Instance.ShowGameOverSnapshot(snapshotDistance, snapshotSessionCoins, snapshotTotalCoins, snapshotElapsed);
+                yield break;
+            }
+            yield return null;
+        }
+
+        Debug.LogWarning("[GameManager] Timeout esperando GameOverManager.");
+        Time.timeScale = 0f;
     }
+
+    GameObject FindGameObjectInSceneIncludingInactive(string name)
+    {
+        var roots = SceneManager.GetActiveScene().GetRootGameObjects();
+        foreach (var root in roots)
+        {
+            var t = RecursiveFind(root.transform, name);
+            if (t != null) return t.gameObject;
+        }
+        return null;
+    }
+
+    Transform RecursiveFind(Transform parent, string name)
+    {
+        if (parent.name == name) return parent;
+        for (int i = 0; i < parent.childCount; i++)
+        {
+            var found = RecursiveFind(parent.GetChild(i), name);
+            if (found != null) return found;
+        }
+        return null;
+    }
+
+    private void LoadHighScore() => PlayerPrefs.GetFloat(HIGH_SCORE_KEY, 0f);
 
     void SaveHighScoreIfNeeded()
     {
@@ -271,14 +200,12 @@ private IEnumerator ShowGameOverDelayed()
         {
             PlayerPrefs.SetFloat(HIGH_SCORE_KEY, distance);
             PlayerPrefs.Save();
-            Debug.Log("[GameManager] Novo recorde: " + Mathf.FloorToInt(distance) + " m");
         }
     }
 
     public float GetDistance() => distance;
     public float GetElapsedTime() => elapsedTime;
     public float GetHighScore() => PlayerPrefs.GetFloat(HIGH_SCORE_KEY, 0f);
-    public float GetCurrentSpeed() => currentSpeed;
 
     public void ResetStats()
     {
@@ -289,33 +216,51 @@ private IEnumerator ShowGameOverDelayed()
         UpdateUI();
     }
 
-    // exemplo: restart via botão
-    public void RestartScene()
-    {
-        Time.timeScale = 1f;
-        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
-    }
-
-    public void PrintSceneDebugStatus()
+    // Compatibilidade / helper para reconectar referências (em caso de builds antigos chamarem)
+public void ReconnectSceneReferences()
 {
-    Debug.Log("[DEBUG] --- Scene debug status ---");
-    Debug.Log("[DEBUG] Scene name: " + SceneManager.GetActiveScene().name);
-
-    Debug.Log("[DEBUG] GameManager.player is " + (player == null ? "NULL" : player.name));
-    Debug.Log("[DEBUG] GameManager.timeText is " + (timeText == null ? "NULL" : timeText.name));
-    Debug.Log("[DEBUG] GameManager.distanceText is " + (distanceText == null ? "NULL" : distanceText.name));
-
-    if (CoinManager.Instance == null)
+    if (player == null)
     {
-        Debug.Log("[DEBUG] CoinManager.Instance is NULL");
-    }
-    else
-    {
-        Debug.Log("[DEBUG] CoinManager.Instance exists. SessionCoins: " + CoinManager.Instance.GetSessionCoins() + " TotalCoins: " + CoinManager.Instance.GetTotalCoins());
-        Debug.Log("[DEBUG] CoinManager.coinText is " + (CoinManager.Instance.coinText == null ? "NULL" : CoinManager.Instance.coinText.name));
+        player = FindObjectOfType<Player>();
+        if (player != null) Debug.Log("[GameManager] Player reconectado: " + player.name);
     }
 
-    Debug.Log("[DEBUG] GameManager distance: " + GetDistance() + " elapsedTime: " + GetElapsedTime());
-    Debug.Log("[DEBUG] --- end debug ---");
+    if (timeText == null)
+    {
+        GameObject timeGO = GameObject.Find("Time") ?? GameObject.Find("TimeText");
+        if (timeGO != null)
+        {
+            timeText = timeGO.GetComponent<TMPro.TextMeshProUGUI>();
+            Debug.Log("[GameManager] timeText reconectado: " + timeText.name);
+        }
+    }
+
+    if (distanceText == null)
+    {
+        GameObject distGO = GameObject.Find("Distance") ?? GameObject.Find("DistanceText");
+        if (distGO != null)
+        {
+            distanceText = distGO.GetComponent<TMPro.TextMeshProUGUI>();
+            Debug.Log("[GameManager] distanceText reconectado: " + distanceText.name);
+        }
+    }
+
+    // tenta reassociar coinText no CoinManager
+    if (CoinManager.Instance != null && CoinManager.Instance.coinText == null)
+    {
+        GameObject coinTextGO = GameObject.Find("CoinText");
+        if (coinTextGO != null)
+        {
+            CoinManager.Instance.coinText = coinTextGO.GetComponent<TMPro.TextMeshProUGUI>();
+            Debug.Log("[GameManager] coinText atribuído ao CoinManager: " + CoinManager.Instance.coinText.name);
+        }
+    }
 }
+
+// Compat: método usado por outros scripts
+public float GetCurrentSpeed()
+{
+    return currentSpeed;
+}
+
 }
