@@ -2,89 +2,101 @@ using UnityEngine;
 
 public class GroundSpawner : MonoBehaviour
 {
-    // Lista de prefabs de ground para escolher aleatoriamente
-    public GameObject[] groundPrefabs;
-    
-    // Referência ao objeto de cena que marca onde spawnar o próximo tile.
-    // Arraste o GameObject "NextSpawn" aqui no Inspector.
-    public Transform nextSpawnMarker;
-    
-    private Vector3 nextTileSpawnPos;
-    private bool isSpawning = false; // Previne múltiplos spawns simultâneos
+    [System.Serializable]
+    public class TileLayer
+    {
+        public string layerName = "Ground Layer";
+        public GameObject[] tilePrefabs;
+        public Transform nextSpawnMarker;
+        [HideInInspector] public Vector3 nextTileSpawnPos;
+        [HideInInspector] public bool isSpawning = false;
+    }
+
+    [Header("Configuração de Layers")]
+    public TileLayer[] tileLayers; // Pode ter Ground, Hell, etc.
 
     void Start()
     {
-        // Validação
-        if (groundPrefabs == null || groundPrefabs.Length == 0)
+        // Inicializa cada layer
+        foreach (TileLayer layer in tileLayers)
         {
-            Debug.LogError("[GroundSpawner] Nenhum prefab atribuído! Arraste os prefabs de ground no Inspector.");
-            return;
-        }
+            if (layer.tilePrefabs == null || layer.tilePrefabs.Length == 0)
+            {
+                Debug.LogError($"[GroundSpawner] Layer '{layer.layerName}': Nenhum prefab atribuído!");
+                continue;
+            }
 
-        // O primeiro tile já está na cena, então apenas inicializa a posição do próximo spawn
-        if (nextSpawnMarker != null)
-        {
-            nextTileSpawnPos = nextSpawnMarker.position;
-            Debug.Log("[GroundSpawner] Inicializado. Próximo tile será spawnado em: " + nextTileSpawnPos);
-        }
-        else
-        {
-            Debug.LogError("[GroundSpawner] nextSpawnMarker não atribuído! Arraste o objeto NextSpawn no Inspector.");
+            if (layer.nextSpawnMarker != null)
+            {
+                layer.nextTileSpawnPos = layer.nextSpawnMarker.position;
+                // Debug.Log($"[GroundSpawner] Layer '{layer.layerName}' inicializado. Próximo spawn em: {layer.nextTileSpawnPos}");
+            }
+            else
+            {
+                Debug.LogError($"[GroundSpawner] Layer '{layer.layerName}': nextSpawnMarker não atribuído!");
+            }
         }
     }
 
-    public void SpawnTile()
+    // Spawna tile em um layer específico (0 = primeiro layer, 1 = segundo, etc.)
+    public void SpawnTile(int layerIndex = 0)
     {
-        if (isSpawning)
-        {
-            Debug.LogWarning("[GroundSpawner] Spawn já em andamento, ignorando chamada duplicada.");
-            return;
-        }
-
-        if (groundPrefabs == null || groundPrefabs.Length == 0)
-        {
-            Debug.LogError("[GroundSpawner] Nenhum prefab disponível para spawnar!");
-            return;
-        }
-
-        isSpawning = true;
-
-        // Escolhe um prefab aleatório da lista
-        int randomIndex = Random.Range(0, groundPrefabs.Length);
-        GameObject selectedPrefab = groundPrefabs[randomIndex];
-
-        // Instancia o próximo tile na posição do NextSpawn
-        GameObject tile = Instantiate(selectedPrefab, nextTileSpawnPos, Quaternion.identity);
+        Debug.Log($"[GroundSpawner] SpawnTile chamado com layerIndex: {layerIndex}");
         
-        // Garante que o tile não tenha rotação (previne giros)
+        if (layerIndex < 0 || layerIndex >= tileLayers.Length)
+        {
+            Debug.LogError($"[GroundSpawner] Layer index {layerIndex} inválido! Total de layers: {tileLayers.Length}");
+            return;
+        }
+
+        TileLayer layer = tileLayers[layerIndex];
+        Debug.Log($"[GroundSpawner] Spawnando no layer '{layer.layerName}' (index {layerIndex})");
+
+        if (layer.isSpawning)
+        {
+            Debug.LogWarning($"[GroundSpawner] Layer '{layer.layerName}': Spawn já em andamento, ignorando.");
+            return;
+        }
+
+        if (layer.tilePrefabs == null || layer.tilePrefabs.Length == 0)
+        {
+            Debug.LogError($"[GroundSpawner] Layer '{layer.layerName}': Nenhum prefab disponível!");
+            return;
+        }
+
+        layer.isSpawning = true;
+
+        // Escolhe um prefab aleatório
+        int randomIndex = Random.Range(0, layer.tilePrefabs.Length);
+        GameObject selectedPrefab = layer.tilePrefabs[randomIndex];
+
+        // Instancia
+        GameObject tile = Instantiate(selectedPrefab, layer.nextTileSpawnPos, Quaternion.identity);
         tile.transform.rotation = Quaternion.identity;
         
-        Debug.Log($"[GroundSpawner] Tile '{selectedPrefab.name}' (índice {randomIndex}) spawnado em: {nextTileSpawnPos}");
+        // Debug.Log($"[GroundSpawner] Layer '{layer.layerName}': Tile '{selectedPrefab.name}' spawnado em {layer.nextTileSpawnPos}");
 
-        // Atualiza a posição do próximo spawn (continua usando o mesmo NextSpawn de cena)
-        if (nextSpawnMarker != null)
+        // Atualiza próxima posição
+        if (layer.nextSpawnMarker != null)
         {
-            nextTileSpawnPos = nextSpawnMarker.position;
-            Debug.Log("[GroundSpawner] Próxima posição de spawn: " + nextTileSpawnPos);
-        }
-        else
-        {
-            Debug.LogWarning("[GroundSpawner] nextSpawnMarker não atribuído. Mantendo posição atual.");
+            layer.nextTileSpawnPos = layer.nextSpawnMarker.position;
         }
 
-        isSpawning = false;
+        layer.isSpawning = false;
+    }
+
+    // Versão antiga para compatibilidade (spawna no layer 0)
+    public void SpawnTile()
+    {
+        SpawnTile(0);
     }
 
     public void DestroyTile(GameObject tile)
     {
         if (tile != null)
         {
-            Debug.Log($"[GroundSpawner] Destruindo tile: {tile.name}");
+            // Debug.Log($"[GroundSpawner] Destruindo tile: {tile.name}");
             Destroy(tile);
-        }
-        else
-        {
-            Debug.LogWarning("[GroundSpawner] Tentativa de destruir um tile nulo.");
         }
     }
 }

@@ -12,6 +12,10 @@ public class TilemapController : MonoBehaviour
     [Tooltip("Se true, respeita o Time.timeScale (não se move quando tempo está parado).")]
     public bool respectTimeScale = true;
 
+    [Header("Spawn Layer")]
+    [Tooltip("Qual layer de tiles este prefab deve spawnar (0 = primeiro, 1 = segundo, etc.)")]
+    public int spawnLayerIndex = 0;
+
     private bool hasTriggeredSpawn = false; // Cada tile só spawna uma vez
     private bool hasTriggeredDestroy = false; // Cada tile só se destrói uma vez
 
@@ -25,7 +29,7 @@ public class TilemapController : MonoBehaviour
             if (moveScript.gameObject != this.gameObject) // Não desabilita se estiver no próprio objeto
             {
                 moveScript.enabled = false;
-                Debug.Log($"[TilemapController] Desabilitado MoveLeft em filho: {moveScript.gameObject.name}");
+                // Debug.Log($"[TilemapController] Desabilitado MoveLeft em filho: {moveScript.gameObject.name}");
             }
         }
     }
@@ -49,27 +53,30 @@ public class TilemapController : MonoBehaviour
         float finalSpeed = worldSpeed * speedMultiplier;
         
         // DEBUG: Log a cada 60 frames (~1 segundo)
-        if (Time.frameCount % 60 == 0)
-        {
-            Debug.Log($"[TilemapController] {gameObject.name} - baseSpeed: {baseSpeed}, worldSpeed: {worldSpeed}, multiplier: {speedMultiplier}, finalSpeed: {finalSpeed}");
-        }
+        // if (Time.frameCount % 60 == 0)
+        // {
+        //     Debug.Log($"[TilemapController] {gameObject.name} - baseSpeed: {baseSpeed}, worldSpeed: {worldSpeed}, multiplier: {speedMultiplier}, finalSpeed: {finalSpeed}");
+        // }
         
         transform.Translate(Vector2.left * finalSpeed * Time.deltaTime);
     }
 
     void OnTriggerEnter2D(Collider2D other)
     {
-        Debug.Log("[TilemapController] OnTriggerEnter2D: colidiu com " + other.name + " tag=" + other.tag);
+        // Debug.Log("[TilemapController] OnTriggerEnter2D: colidiu com " + other.name + " tag=" + other.tag);
         
         // Detecta colisão com TriggerSpawn (tag = "Box") para spawnar próximo tile
         if (other.CompareTag("Box") && !hasTriggeredSpawn)
         {
             hasTriggeredSpawn = true;
             
+            Debug.Log($"[TilemapController] {gameObject.name} detectou TriggerSpawn! Spawnando layer index: {spawnLayerIndex}");
+            
             var spawner = FindObjectOfType<GroundSpawner>();
             if (spawner)
             {
-                spawner.SpawnTile();
+                // Spawna no layer configurado neste prefab
+                spawner.SpawnTile(spawnLayerIndex);
             }
             else
             {

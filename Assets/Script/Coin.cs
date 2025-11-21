@@ -7,14 +7,14 @@ public class Coin : MonoBehaviour
 
     void OnTriggerEnter2D(Collider2D other)
     {
-        Debug.Log($"[Coin] OnTriggerEnter2D com: {other.name} (tag: {other.tag})");
+        // Debug.Log($"[Coin] OnTriggerEnter2D com: {other.name} (tag: {other.tag})");
         
         if (collected) return; // evita coletar duas vezes
 
         if (other != null && other.CompareTag("Player"))
         {
             collected = true;
-            Debug.Log("[Coin] Player detectado! Coletando moeda...");
+            // Debug.Log("[Coin] Player detectado! Coletando moeda...");
 
             // toca som (independe de AudioSource no objeto)
             if (collectSound != null)
@@ -26,7 +26,7 @@ public class Coin : MonoBehaviour
             if (CoinManager.Instance != null)
             {
                 CoinManager.Instance.AddCoin();
-                Debug.Log("[Coin] Moeda adicionada ao CoinManager.");
+                // Debug.Log("[Coin] Moeda adicionada ao CoinManager.");
             }
             else
             {
