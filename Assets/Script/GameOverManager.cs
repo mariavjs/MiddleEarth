@@ -52,40 +52,81 @@ public class GameOverManager : MonoBehaviour
         if (restartButton != null) restartButton.onClick.AddListener(OnRestart);
     }
 
-    public void ShowGameOver()
+// substitua a implementação atual de ShowGameOver() por esta
+public void ShowGameOver()
+{
+    if (gameOverPanel != null && gameOverPanel.activeSelf) return;
+
+    // --- atualizar valores antes de pausar para garantir que rodem dependências ---
+    UpdateGameOverTexts();
+
+    // pausa o jogo (física / updates dependentes de Time.timeScale)
+    Time.timeScale = 0f;
+
+    // Tocar o SFX de morte e registrar quando ele termina (em tempo real)
+    if (deathClip != null)
     {
-        if (gameOverPanel != null && gameOverPanel.activeSelf) return;
-
-        // pausa o jogo (física / updates dependentes de Time.timeScale)
-        Time.timeScale = 0f;
-
-        // Tocar o SFX de morte e registrar quando ele termina (em tempo real)
-        if (deathClip != null)
+        if (sfxSource != null)
         {
-            if (sfxSource != null)
-            {
-                sfxSource.PlayOneShot(deathClip);
-            }
-            else
-            {
-                // PlayClipAtPoint também funciona; vamos registrar o tempo fim com base no length.
-                Vector3 pos = Camera.main != null ? Camera.main.transform.position : Vector3.zero;
-                AudioSource.PlayClipAtPoint(deathClip, pos);
-            }
-
-            // registra o instante (realtime) em que o SFX termina
-            sfxEndRealtime = Time.realtimeSinceStartup + deathClip.length;
+            sfxSource.PlayOneShot(deathClip);
         }
         else
         {
-            // não há clip: garante que sfxEndRealtime não bloqueie carregamento
-            sfxEndRealtime = Time.realtimeSinceStartup;
+            Vector3 pos = Camera.main != null ? Camera.main.transform.position : Vector3.zero;
+            AudioSource.PlayClipAtPoint(deathClip, pos);
         }
 
-        // atualizar UI e mostrar painel (mantemos o áudio tocando)
-        // restante do seu código (atualização de textos de score/coins deveria estar aqui, se não estiver já)
-        if (gameOverPanel != null) gameOverPanel.SetActive(true);
+        sfxEndRealtime = Time.realtimeSinceStartup + deathClip.length;
     }
+    else
+    {
+        sfxEndRealtime = Time.realtimeSinceStartup;
+    }
+
+    // finalmente mostra o painel
+    if (gameOverPanel != null) gameOverPanel.SetActive(true);
+}
+
+private void UpdateGameOverTexts()
+{
+    // DISTANCE / SCORE
+    float runDistance = 0f;
+    float best = 0f;
+    if (GameManager.Instance != null)
+    {
+        runDistance = GameManager.Instance.GetDistance();
+        best = GameManager.Instance.GetHighScore();
+    }
+    // formata: "Run Score: 123 m" e "Max Score: 456 m"
+    if (scoreText != null)
+        scoreText.text = "Run Score: " + Mathf.FloorToInt(runDistance) + " m";
+    if (recordText != null)
+        recordText.text = "Max Score: " + Mathf.FloorToInt(best) + " m";
+
+    // COINS: tenta CoinManager então PlayerPrefs fallback
+    int sessionCoins = 0;
+    int totalCoins = 0;
+    if (CoinManager.Instance != null)
+    {
+        sessionCoins = CoinManager.Instance.GetSessionCoins();
+        totalCoins = CoinManager.Instance.GetTotalCoins();
+    }
+    else
+    {
+        // PlayerPrefs fallback (mantive mesma chave que usa CoinManager)
+        sessionCoins = PlayerPrefs.GetInt("PLAYER_COINS_SESSION", 0); // se você não usa essa chave, ignore
+        totalCoins = PlayerPrefs.GetInt("PLAYER_COINS", 0);
+    }
+
+    if (coinsThisRunText != null)
+        coinsThisRunText.text = "+Coins: " + sessionCoins;
+    if (coinsTotalText != null)
+        coinsTotalText.text = "Total Coins: " + totalCoins;
+
+    // (opcional) se você tiver outros campos no painel (runCoins / totalCoins) atualize-os também:
+    // <procure pelos nomes exatos na sua hierarchy e adicione referências públicas no script, se necessário>
+}
+
 
     public void HideGameOver()
     {
