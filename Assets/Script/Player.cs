@@ -1,7 +1,8 @@
 using UnityEngine;
-using UnityEngine.UI;    // <- necessário para Image
+using UnityEngine.UI;
 using TMPro;
 
+[RequireComponent(typeof(Rigidbody2D))]
 public class Player : MonoBehaviour
 {
     [Header("Movimento")]
@@ -18,12 +19,12 @@ public class Player : MonoBehaviour
     private AudioSource audioSource;
 
     [Tooltip("Quantas vidas o jogador começa tendo (ex: 3).")]
-    public int startingLives = 3;   // quantidade inicial (padrão 3)
-    public int currentLives;       // vidas atuais em tempo de execução
+    public int startingLives = 3;
+    public int currentLives;
 
     [Header("UI - Hearts (imagens)")]
-    public Image[] heartImages;    // arraste as imagens Heart1..HeartN aqui (em ordem)
-    public TextMeshProUGUI livesText; // opcional: mostra número além dos corações
+    public Image[] heartImages;
+    public TextMeshProUGUI livesText;
 
     private bool isDead = false;
 
@@ -31,34 +32,31 @@ public class Player : MonoBehaviour
     {
         rb = GetComponent<Rigidbody2D>();
         animator = GetComponent<Animator>();
-
-
         audioSource = GetComponent<AudioSource>();
+
         if (audioSource == null)
             Debug.LogWarning($"[{name}] AudioSource não encontrado no Player. Adicione um AudioSource.");
 
-        // garante que o número inicial de vidas esteja dentro do que podemos exibir
         int maxDisplayable = (heartImages != null) ? heartImages.Length : 0;
-        if (maxDisplayable <= 0)
-        {
-            // se não houver imagens, usamos startingLives diretamente
-            currentLives = Mathf.Max(0, startingLives);
-        }
-        else
-        {
-            // se houver N corações na UI, começa com min(startingLives, N)
-            currentLives = Mathf.Clamp(startingLives, 0, maxDisplayable);
-        }
-
+        if (maxDisplayable <= 0) currentLives = Mathf.Max(0, startingLives);
+        else currentLives = Mathf.Clamp(startingLives, 0, maxDisplayable);
 
         UpdateLivesUI();
+
+        Debug.Log($"[Player] Start - lives = {currentLives}");
     }
 
     void Update()
     {
         if (isDead) return;
 
-        // speed += acceleration * Time.deltaTime;
+        // DEBUG: tecla H força pit (útil para testar)
+        if (Input.GetKeyDown(KeyCode.H))
+        {
+            Debug.Log("[Player] Debug H pressed -> forcing pit start");
+            if (PitManager.Instance != null) PitManager.Instance.StartPitForPlayer(transform);
+            else Debug.LogWarning("[Player] PitManager.Instance null when forcing pit.");
+        }
 
         if (Input.GetKeyDown(KeyCode.Space) && canJump)
         {
@@ -67,25 +65,34 @@ public class Player : MonoBehaviour
             canJump = false;
         }
 
-
         if (Input.GetKeyDown(KeyCode.K))
         {
             if (audioSource != null && hitSound != null) audioSource.PlayOneShot(hitSound);
         }
 
+        // exemplo de fallback: se cair muito, perde 1 vida
         if (transform.position.y < -10f)
         {
+            Debug.Log("[Player] fell below -10 -> TakeDamage(1)");
             TakeDamage(1);
         }
     }
 
-    void Jump()
+    public void Jump()
     {
         if (rb == null) return;
-        Vector2 v = rb.linearVelocity;
-
+        Vector2 v = rb.linearVelocity; // propriedade correta
         v.y = jumpHeight;
         rb.linearVelocity = v;
+
+        Debug.Log($"[Player] Jump -> velocity.y = {rb.linearVelocity.y}");
+    }
+
+    public void ForceAllowJump()
+    {
+        canJump = true;
+        if (animator != null) animator.SetBool("Jump", false);
+        Debug.Log("ForceAllowJump() chamado -> canJump = true");
     }
 
     void OnCollisionEnter2D(Collision2D collision)
@@ -94,10 +101,40 @@ public class Player : MonoBehaviour
         {
             canJump = true;
             if (animator != null) animator.SetBool("Jump", false);
+            Debug.Log("Ground detected -> canJump = true");
         }
     }
 
-    // Aplica dano; garante que não fique negativo
+    void OnCollisionStay2D(Collision2D collision)
+    {
+        if (collision.gameObject.CompareTag("Ground"))
+        {
+            canJump = true;
+        }
+    }
+
+    // ÚNICA definição de OnTriggerEnter2D (remova outras)
+    void OnTriggerEnter2D(Collider2D other)
+    {
+        Debug.Log($"[Player] OnTriggerEnter2D with '{other.gameObject.name}' tag={other.gameObject.tag}");
+
+        if (other.CompareTag("Enemy"))
+        {
+            Debug.Log("[Player] Hit Enemy -> calling TakeDamage(1)");
+            TakeDamage(1);
+
+            // Se preferir: ir direto ao inferno ao tocar inimigo (independente de vidas)
+            // PitManager.Instance?.StartPitForPlayer(this.transform);
+        }
+
+        // se usar pit trigger separado:
+        if (other.CompareTag("PitTrigger"))
+        {
+            Debug.Log("[Player] Entered PitTrigger -> starting pit");
+            PitManager.Instance?.StartPitForPlayer(this.transform);
+        }
+    }
+
     public void TakeDamage(int amount)
     {
         if (isDead) return;
@@ -105,15 +142,21 @@ public class Player : MonoBehaviour
         currentLives = Mathf.Max(0, currentLives - amount);
         UpdateLivesUI();
 
+        if (hitSound != null && audioSource != null) audioSource.PlayOneShot(hitSound);
 
-        if (hitSound != null && audioSource != null)
-
-            audioSource.PlayOneShot(hitSound);
-
+        // iniciar pit quando ficar com 1 vida (comportamento desejado)
+        if (currentLives == 1)
+        {
+            Debug.Log("[Player] currentLives == 1 -> requesting PitManager to start pit");
+            if (PitManager.Instance != null)
+                PitManager.Instance.StartPitForPlayer(this.transform);
+            else
+                Debug.LogWarning("[Player] PitManager.Instance null when requesting pit.");
+        }
 
         if (currentLives <= 0)
         {
-            Die();
+            Die(); // chama Die uma vez (sem recursão)
         }
         else
         {
@@ -126,55 +169,31 @@ public class Player : MonoBehaviour
         if (isDead) return;
         isDead = true;
 
-        // if (deathSound != null && audioSource != null)
-        //     audioSource.PlayOneShot(deathSound);
+        Debug.Log("[Player] Die() called");
 
-        // desativa o comportamento do player
+        if (deathSound != null && audioSource != null) audioSource.PlayOneShot(deathSound);
+
+        if (animator != null) animator.SetTrigger("Die");
+
+        // desativa input do player; não destrua o objeto enquanto estiver testando pit/timer
         this.enabled = false;
 
-        // opcional: animação de morte já disparada antes (ex: animator.SetTrigger("Die"); )
-
-        // Informar GameManager e abrir Game Over (GameManager pode salvar highscore, etc)
-        if (GameManager.Instance != null)
-        {
-            GameManager.Instance.OnPlayerDeath();
-        }
-
-        // Mostrar painel de Game Over (vai pausar o jogo)
-        if (GameOverManager.Instance != null)
-        {
-            GameOverManager.Instance.ShowGameOver();
-        }
-
-        // destrói o objeto visual depois de um tempo, se desejar
-        Destroy(gameObject, 0.5f);
-        // não setamos Time.timeScale = 0f aqui — o GameOverManager cuida disso
+        // Se desejar, chame GameOverManager aqui (comente se quiser testar timer)
+        // GameOverManager.Instance?.ShowGameOver();
     }
 
-
-    // Atualiza as imagens de coração e (opcional) texto
     private void UpdateLivesUI()
     {
-        // 1) Se houver imagens (heartImages), ativa/desativa conforme currentLives
         if (heartImages != null && heartImages.Length > 0)
         {
             for (int i = 0; i < heartImages.Length; i++)
-            {
-                // Exibe o coração se o índice for menor que currentLives
                 if (heartImages[i] != null)
                     heartImages[i].gameObject.SetActive(i < currentLives);
-            }
         }
 
-        // 2) Se livesText estiver configurado, mantenha como fallback (opcional)
-        if (livesText != null)
-        {
-            livesText.text = "Lives: " + currentLives;
-        }
+        if (livesText != null) livesText.text = "Lives: " + currentLives;
     }
 
-    // Método para adicionar vidas (ex: comprar ou ganhar vida)
-    // Retorna quantas vidas realmente foram adicionadas
     public int AddLife(int amount = 1)
     {
         if (isDead) return 0;
@@ -189,15 +208,12 @@ public class Player : MonoBehaviour
         int prev = currentLives;
         currentLives = Mathf.Clamp(currentLives + amount, 0, heartImages.Length);
         UpdateLivesUI();
-        return currentLives - prev; // quantidade efetivamente adicionada
+        return currentLives - prev;
     }
 
-    // Método para definir um novo startingLives (usado quando o jogador compra vidas extras no shop)
-    // OBS: se o player pode ter mais corações visíveis, você precisa adicionar imagens no UI e aumentar heartImages length.
     public void SetStartingLives(int newStarting)
     {
         startingLives = newStarting;
-        // atualiza currentLives respeitando o máximo exibível
         int maxDisplay = (heartImages != null) ? heartImages.Length : newStarting;
         currentLives = Mathf.Clamp(startingLives, 0, maxDisplay);
         UpdateLivesUI();
