@@ -45,7 +45,13 @@ public class CameraFollow : MonoBehaviour
         Vector3 target = new Vector3(targetX, targetY, transform.position.z);
         transform.position = Vector3.SmoothDamp(transform.position, target, ref velocity, followSmoothTime);
     }
-
+     public void ForceSetInHell(bool value)
+{
+    inHell = value;
+    StopAllCoroutines();
+    float targetY = inHell ? hellCameraY : (player != null ? player.position.y + groundYOffset : groundYOffset);
+    transform.position = new Vector3(transform.position.x, targetY, transform.position.z);
+}
     // Chamado quando o jogador entra ou sai do inferno
     public void SetInHell(bool value)
     {

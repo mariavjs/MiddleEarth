@@ -3642,6 +3642,7 @@ GameObject:
   - component: {fileID: 1368966464}
   - component: {fileID: 1368966463}
   - component: {fileID: 1368966462}
+  - component: {fileID: 1368966468}
   m_Layer: 0
   m_Name: GameManager
   m_TagString: Untagged
@@ -3761,6 +3762,24 @@ Transform:
   - {fileID: 1936272512}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1368966468
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1368966461}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5b5492eded0f14f4bb59d376d6ea76e9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  surviveTime: 20
+  infernoY: -14
+  returnYOffset: 0.5
+  enableFastFallOnEnter: 1
+  cameraFollow: {fileID: 1977813430}
+  timerText: {fileID: 1237251036}
 --- !u!1001 &1376369021
 PrefabInstance:
   m_ObjectHideFlags: 0
