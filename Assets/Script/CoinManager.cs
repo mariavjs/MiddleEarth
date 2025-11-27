@@ -17,12 +17,10 @@ public class CoinManager : MonoBehaviour
         if (Instance == null)
         {
             Instance = this;
-            // DontDestroyOnLoad(gameObject); // opcional se quiser persistir CoinManager entre cenas
         }
         else
         {
             Destroy(gameObject);
-            return;
         }
     }
 

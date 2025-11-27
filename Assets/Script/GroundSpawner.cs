@@ -41,8 +41,6 @@ public class GroundSpawner : MonoBehaviour
     // Spawna tile em um layer específico (0 = primeiro layer, 1 = segundo, etc.)
     public void SpawnTile(int layerIndex = 0)
     {
-        Debug.Log($"[GroundSpawner] SpawnTile chamado com layerIndex: {layerIndex}");
-        
         if (layerIndex < 0 || layerIndex >= tileLayers.Length)
         {
             Debug.LogError($"[GroundSpawner] Layer index {layerIndex} inválido! Total de layers: {tileLayers.Length}");
@@ -50,7 +48,6 @@ public class GroundSpawner : MonoBehaviour
         }
 
         TileLayer layer = tileLayers[layerIndex];
-        Debug.Log($"[GroundSpawner] Spawnando no layer '{layer.layerName}' (index {layerIndex})");
 
         if (layer.isSpawning)
         {
@@ -71,10 +68,19 @@ public class GroundSpawner : MonoBehaviour
         GameObject selectedPrefab = layer.tilePrefabs[randomIndex];
 
         // Instancia
-        GameObject tile = Instantiate(selectedPrefab, layer.nextTileSpawnPos, Quaternion.identity);
+        TilemapController tile = Instantiate(selectedPrefab, layer.nextTileSpawnPos, Quaternion.identity).GetComponent<TilemapController>();
         tile.transform.rotation = Quaternion.identity;
-        
-        // Debug.Log($"[GroundSpawner] Layer '{layer.layerName}': Tile '{selectedPrefab.name}' spawnado em {layer.nextTileSpawnPos}");
+
+        tile.tilemapType = layerIndex == 0? TilemapType.GROUND : TilemapType.HELL;
+
+        if (PitManager.Instance.IsPlayerInHell())
+        {
+            tile.SetIsMoving(tile.tilemapType == TilemapType.HELL);
+        }
+        else
+        {
+            tile.SetIsMoving(tile.tilemapType == TilemapType.GROUND);
+        }
 
         // Atualiza próxima posição
         if (layer.nextSpawnMarker != null)
@@ -83,12 +89,6 @@ public class GroundSpawner : MonoBehaviour
         }
 
         layer.isSpawning = false;
-    }
-
-    // Versão antiga para compatibilidade (spawna no layer 0)
-    public void SpawnTile()
-    {
-        SpawnTile(0);
     }
 
     public void DestroyTile(GameObject tile)
@@ -100,31 +100,3 @@ public class GroundSpawner : MonoBehaviour
         }
     }
 }
-
-
-// Start é chamado uma vez antes da primeira execução do Update após o MonoBehaviour ser criado
-    // void Start()
-    // {   
-    //     nextTileSpawnPos = Vector3.zero; // Primeira posição é zero
-    //     SpawnTile();
-    // }
-
-    // // Método para spawnar um novo tile
-    // public void SpawnTile()
-    // {
-    //     // Instancia o groundPrefab na posição nextTileSpawnPos
-    //     GameObject temp = Instantiate(groundPrefab, nextTileSpawnPos, Quaternion.identity);
-    //     Debug.Log("Tile spawnado em: " + nextTileSpawnPos);
-
-    //     // Busca o filho "NextSpawn" no tile instanciado
-    //     Transform nextSpawn = temp.transform.Find("NextSpawn");
-    //     if (nextSpawn != null)
-    //     {
-    //         // Atualiza nextTileSpawnPos com a posição de "NextSpawn"
-    //         nextTileSpawnPos = nextSpawn.position;
-    //         Debug.Log("Próxima posição de spawn atualizada para: " + nextTileSpawnPos);
-    //     }
-    //     else
-    //     {
-    //         Debug.LogError("Ground prefab não possui filho 'NextSpawn'.");
-    //     }

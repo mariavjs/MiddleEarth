@@ -16,8 +16,11 @@ public class TilemapController : MonoBehaviour
     [Tooltip("Qual layer de tiles este prefab deve spawnar (0 = primeiro, 1 = segundo, etc.)")]
     public int spawnLayerIndex = 0;
 
+    public TilemapType tilemapType;
+
     private bool hasTriggeredSpawn = false; // Cada tile só spawna uma vez
     private bool hasTriggeredDestroy = false; // Cada tile só se destrói uma vez
+    private bool isMoving = true;
 
     void Start()
     {
@@ -36,6 +39,8 @@ public class TilemapController : MonoBehaviour
 
     void Update()
     {
+        if (!isMoving) return;
+
         // pausa segura
         if (respectTimeScale && Time.timeScale <= 0f) return;
 
@@ -70,8 +75,6 @@ public class TilemapController : MonoBehaviour
         {
             hasTriggeredSpawn = true;
             
-            Debug.Log($"[TilemapController] {gameObject.name} detectou TriggerSpawn! Spawnando layer index: {spawnLayerIndex}");
-            
             var spawner = FindObjectOfType<GroundSpawner>();
             if (spawner)
             {
@@ -99,5 +102,10 @@ public class TilemapController : MonoBehaviour
                 Debug.LogError("[TilemapController] GroundSpawner não encontrado para destruir tile.");
             }
         }
+    }
+
+    public void SetIsMoving(bool active)
+    {
+        isMoving = active;
     }
 }

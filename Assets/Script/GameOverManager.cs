@@ -3,6 +3,7 @@ using UnityEngine.UI;
 using TMPro;
 using UnityEngine.SceneManagement;
 using System.Collections;
+using System.Globalization;
 
 public class GameOverManager : MonoBehaviour
 {
@@ -56,6 +57,8 @@ public class GameOverManager : MonoBehaviour
     {
         if (gameOverPanel != null && gameOverPanel.activeSelf) return;
 
+        UpdateInformation();
+
         // pausa o jogo (física / updates dependentes de Time.timeScale)
         Time.timeScale = 0f;
 
@@ -93,6 +96,13 @@ public class GameOverManager : MonoBehaviour
             gameOverPanel.SetActive(false);
     }
 
+    private void UpdateInformation()
+    {
+        scoreText.SetText("Score: " + (int)GameManager.Instance.GetDistance() + " m");
+        recordText.SetText("Record: " + (int)PlayerPrefs.GetFloat("HighScoreDistance") + " m");
+        coinsThisRunText.SetText("Coins: " + CoinManager.Instance.GetSessionCoins());
+        coinsTotalText.SetText("Total Coins: " + CoinManager.Instance.GetTotalCoins());
+    }
 
     // verifica se ainda estamos no período em que o SFX deve tocar
     bool IsSfxStillPlayingRealtime()

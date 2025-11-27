@@ -26,15 +26,12 @@ public class ShopManager : MonoBehaviour
 
     void Start()
     {
-        if (buyLifeButton != null) buyLifeButton.onClick.AddListener(OnBuyLife);
-        if (buyInfernoButton != null) buyInfernoButton.onClick.AddListener(OnBuyInferno);
-        if (backToMenuButton != null) backToMenuButton.onClick.AddListener(OnBackToMainMenu);
-
         // ❌ Removido: linhas que alteravam textos dos botões ou preços
         // if (lifePriceText != null) lifePriceText.text = priceLife + "c";
         // if (infernoPriceText != null) infernoPriceText.text = priceInferno + "c";
 
         InfernoConfig.Load();
+        LivesConfig.Load();
         UpdateUI();
     }
 
@@ -63,21 +60,19 @@ public class ShopManager : MonoBehaviour
             return;
         }
 
-        if (GameManager.Instance != null && GameManager.Instance.player != null)
-        {
-            int added = GameManager.Instance.player.AddLife(1);
-            Debug.Log("[ShopManager] Vida comprada. Vidas adicionadas: " + added);
-        }
-        else
-        {
-            Debug.LogWarning("[ShopManager] GameManager.player não encontrado.");
-        }
+        LivesConfig.AddMaximumLife();
+        Debug.Log("[ShopManager] Vida comprada. Vidas adicionadas: 1");
 
         UpdateUI();
     }
 
     public void OnBuyInferno()
     {
+        if (InfernoConfig.InfernoDurationSeconds < 6)
+        {
+            return;
+        }
+
         if (!TrySpendCoins(priceInferno))
         {
             Debug.Log("[ShopManager] Saldo insuficiente para comprar redução do inferno.");

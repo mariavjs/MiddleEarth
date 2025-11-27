@@ -2,6 +2,7 @@ using UnityEngine;
 using TMPro;
 using UnityEngine.SceneManagement;
 using System.Collections;
+using UnityEngine.Tilemaps;
 
 public class GameManager : MonoBehaviour
 {
@@ -25,13 +26,18 @@ public class GameManager : MonoBehaviour
     public float speedIncreaseDistance = 100f;       // a cada X metros aplica aumento por passo
     public float speedIncreaseAmount = 0.5f;         // valor adicionado ao currentSpeed por passo (aditivo)
     public bool useMultiplicativeIncrease = false;   // se true, multiplica por speedIncreaseMultiplier
-    public float speedIncreaseMultiplier = 1.05f;    // multiplicador por passo
+    public float speedIncreaseMultiplier = 1.05f; // multiplicador por passo
+    public float hellSpeedMultiplier = 1.5f;
 
     [Header("Debug / Interno")]
     [SerializeField] private float currentSpeed = 0f;   // velocidade atual do mundo (exposta só pra debug)
     private float elapsedTime = 0f;
     private float distance = 0f;
     private float nextSpeedIncreaseAt = 0f;
+
+    [Header("Tilemaps")]
+    [SerializeField]  private TilemapController groundTilemap;
+    [SerializeField]  private TilemapController hellTilemap;
 
     private const string HIGH_SCORE_KEY = "HighScoreDistance";
 
@@ -40,8 +46,6 @@ public class GameManager : MonoBehaviour
         if (Instance == null)
         {
             Instance = this;
-            DontDestroyOnLoad(gameObject);
-            SceneManager.sceneLoaded += OnSceneLoaded;
         }
         else
         {
@@ -49,17 +53,22 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    void OnDestroy()
+    void Start()
     {
-        SceneManager.sceneLoaded -= OnSceneLoaded;
-    }
+        PitManager.Instance.OnPlayerGoToHell += OnPlayerGoToHell;
+        PitManager.Instance.OnPlayerBackFromHell += OnPlayerBackFromHell;
 
-    // chamado toda vez que uma cena é carregada
-    private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
-    {
-        // garante que o jogo não fique pausado por herança de Time.timeScale
+        groundTilemap.SetIsMoving(true);
+        hellTilemap.SetIsMoving(false);
+
+        // carregamento do highscore apenas
+        LoadHighScore();
+
+        // se a cena já estiver carregada antes do registro, chamamos a rotina de limpeza manual
         Time.timeScale = 1f;
         AudioListener.pause = false;
+
+        groundTilemap.SetIsMoving(true);
 
         // tenta resolver referências que mudam por cena
         if (player == null)
@@ -70,18 +79,28 @@ public class GameManager : MonoBehaviour
             GameOverManager.Instance.HideGameOver();
 
         // reseta stats somente quando entramos na cena de jogo (ajuste o nome/índice conforme seu projeto)
-        if (scene.name == "GameScene" || scene.buildIndex == 1)
+        if (SceneManager.GetActiveScene().buildIndex == 1)
             ResetStats();
     }
 
-    void Start()
+    private void OnPlayerGoToHell()
     {
-        // carregamento do highscore apenas
-        LoadHighScore();
+        TilemapController[] tiles = FindObjectsByType<TilemapController>(FindObjectsInactive.Exclude, FindObjectsSortMode.InstanceID);
 
-        // se a cena já estiver carregada antes do registro, chamamos a rotina de limpeza manual
-        Time.timeScale = 1f;
-        AudioListener.pause = false;
+        foreach (TilemapController tilemap in tiles)
+        {
+            tilemap.SetIsMoving(tilemap.tilemapType != TilemapType.GROUND);
+        }
+    }
+
+    private void OnPlayerBackFromHell()
+    {
+        TilemapController[] tiles = FindObjectsByType<TilemapController>(FindObjectsInactive.Exclude, FindObjectsSortMode.InstanceID);
+
+        foreach (TilemapController tilemap in tiles)
+        {
+            tilemap.SetIsMoving(tilemap.tilemapType == TilemapType.GROUND);
+        }
     }
 
     void Update()
@@ -93,7 +112,7 @@ public class GameManager : MonoBehaviour
 
         // --- calcula a velocidade atual do mundo (currentSpeed) ---
         // base
-        currentSpeed = baseSpeed;
+        currentSpeed = PitManager.Instance.IsPlayerInHell()? baseSpeed * hellSpeedMultiplier : baseSpeed;
 
         // se aumento contínuo com a distância estiver ligado:
         if (continuousIncreaseWithDistance)

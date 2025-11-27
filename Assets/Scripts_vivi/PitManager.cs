@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 using System.Collections;
 using TMPro;
@@ -9,6 +10,8 @@ using TMPro;
 /// </summary>
 public class PitManager : MonoBehaviour
 {
+    public Action OnPlayerGoToHell; 
+    public Action OnPlayerBackFromHell; 
     public static PitManager Instance { get; private set; }
 
     [Header("Config")]
@@ -23,11 +26,24 @@ public class PitManager : MonoBehaviour
 
     // estado
     Coroutine pitCoroutine;
+    private bool isPlayerInHell;
 
     void Awake()
     {
         if (Instance != null && Instance != this) { Destroy(gameObject); return; }
         Instance = this;
+
+        InfernoConfig.Load();
+    }
+
+    private void Start()
+    {
+        surviveTime = Mathf.FloorToInt(InfernoConfig.InfernoDurationSeconds);
+    }
+
+    public bool IsPlayerInHell()
+    {
+        return isPlayerInHell;
     }
 
     /// <summary>
@@ -38,12 +54,15 @@ public class PitManager : MonoBehaviour
         if (player == null) return;
         // previne múltiplos pits simultâneos
         if (pitCoroutine != null) StopCoroutine(pitCoroutine);
+        isPlayerInHell = true;
         pitCoroutine = StartCoroutine(PitSequence(player));
     }
     
 
     IEnumerator PitSequence(Transform player)
     {
+        OnPlayerGoToHell.Invoke();
+
         // guarda estado
         Vector3 savedPos = player.position;
         Rigidbody2D rb = player.GetComponent<Rigidbody2D>();
@@ -75,20 +94,17 @@ public class PitManager : MonoBehaviour
             // se player foi destruído -> aborta
             if (player == null) break;
 
-            // se o Player morreu via Player script (zero vidas), termina sem voltar
-            if (playerComp != null && playerComp.currentLives <= 0)
-            {
-                Debug.Log("[PitManager] Player morreu no inferno.");
-                break;
-            }
-
             if (timer >= surviveTime)
             {
                 // sobreviveu -> volta
+                OnPlayerBackFromHell.Invoke();
+                isPlayerInHell = false;
+
                 Vector3 back = savedPos;
                 back.y += returnYOffset;
                 player.position = back;
                 if (rb != null) { rb.linearVelocity = Vector2.zero; }
+                
                 Debug.Log("[PitManager] Player sobreviveu e voltou da Hell.");
                 break;
             }
